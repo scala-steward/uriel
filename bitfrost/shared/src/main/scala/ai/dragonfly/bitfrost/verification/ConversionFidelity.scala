@@ -56,6 +56,7 @@ object ConversionFidelity extends App {
           }
           // ARGB -> RGB -> HSV -> RGB -> ARGB
           val hsv = HSV.fromRGB(rgb)
+
           cT = ARGB32.fromRGB(hsv.toRGB)
           err = 1.0 - c.similarity(cT)
           if (err != 0.0) {

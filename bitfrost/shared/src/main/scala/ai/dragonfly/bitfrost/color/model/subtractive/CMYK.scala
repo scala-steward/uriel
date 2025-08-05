@@ -4,19 +4,21 @@ import narr.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.mesh.*
 import ai.dragonfly.mesh.shape.*
-import ai.dragonfly.bitfrost.{ColorContext, NormalizedValue}
-import ai.dragonfly.math.Random
-import ai.dragonfly.math.vector.*
+import ai.dragonfly.bitfrost.*
+import slash.Random
+import slash.vector.*
 
 trait CMYK { self: WorkingSpace =>
 
-  object CMYK extends VectorSpace[CMYK] with NormalizedValue {
+  object CMYK extends VectorSpace[CMYK] {
+
+    opaque type CMYK = Vec[4]
 
     override val maxDistanceSquared: Double = 4.0
 
     def apply(values: NArray[Double]): CMYK = {
       if (values.length == 3) apply(values(0), values(1), values(2))
-      else new CMYK(dimensionCheck(values, 4))
+      else dimensionCheck(values, 4).asInstanceOf[CMYK]
     }
 
     def apply(cyan: Double, magenta: Double, yellow: Double): CMYK = {
@@ -33,11 +35,10 @@ trait CMYK { self: WorkingSpace =>
       values(1) = values(1) - values(3)
       values(2) = values(2) - values(3)
 
-      apply(values)
+      values.asInstanceOf[CMYK]
     }
 
     def apply(cyan: Double, magenta: Double, yellow: Double, key: Double): CMYK = apply(NArray[Double](cyan, magenta, yellow, key))
-
 
     /**
      * Factory method for creating instances of the CMYK class.
@@ -77,12 +78,25 @@ trait CMYK { self: WorkingSpace =>
       )
     }
 
-    override def toVector3(c: CMYK): Vector3 = Vector3(
+    def cyan(cmyk: CMYK): Double = cmyk(0)
+
+    def magenta(cmyk: CMYK): Double = cmyk(1)
+
+    def yellow(cmyk: CMYK): Double = cmyk(2)
+
+    def key(cmyk: CMYK): Double = cmyk(3)
+
+    def black(cmyk: CMYK): Double = cmyk(3)
+
+    override def toVec(c: CMYK): Vec[3] = Vec[3](
       c.cyan + c.key,
       c.yellow + c.key,
       c.magenta + c.key
     )
 
+    override def euclideanDistanceSquaredTo(cmyk1: CMYK, cmyk2: CMYK): Double = cmyk1.euclideanDistanceSquaredTo(cmyk2)
+
+    override def fromVec(v: Vec[3]): CMYK = apply(v.x, v.y, v.z)
   }
 
   /**
@@ -103,45 +117,47 @@ trait CMYK { self: WorkingSpace =>
    * }}}
    */
 
-  case class CMYK private(override val values: NArray[Double]) extends VectorModel[CMYK] {
-    override type VEC = this.type with CMYK
+  type CMYK = CMYK.CMYK
 
-    inline def cyan: Double = values(0)
+  given VectorColorModel[CMYK] with {
+    extension (cmyk: CMYK) {
+      //  case class CMYK private(override val values: NArray[Double]) extends VectorColorModel[CMYK] {
+      //    override type VEC = this.type with CMYK
 
-    inline def magenta: Double = values(1)
+      def cyan: Double = CMYK.cyan(cmyk)
 
-    inline def yellow: Double = values(2)
+      def magenta: Double = CMYK.cyan(cmyk)
 
-    inline def key: Double = values(3)
+      def yellow: Double = CMYK.cyan(cmyk)
 
-    inline def black: Double = values(3)
+      def key: Double = CMYK.cyan(cmyk)
 
-    override def toXYZ: XYZ = toRGB.toXYZ
+      def black: Double = CMYK.cyan(cmyk)
 
-    override def toRGB: RGB = {
-      // http://color.lukas-stratmann.com/color-systems/cmy.html
-      RGB.apply(
-        RGB.clamp0to1(
+      override def toXYZ: XYZ = toRGB.toXYZ
+
+      override def toRGB: RGB = {
+        // http://color.lukas-stratmann.com/color-systems/cmy.html
+        clamp0to1(
           1.0 - (cyan + key),
           1.0 - (magenta + key),
           1.0 - (yellow + key)
-        )
-      )
+        ).asInstanceOf[RGB]
 
-      // https://www.rapidtables.com/convert/color/cmyk-to-rgb.html
-//      RGB.apply(
-//        RGB.clamp0to1(
-//          (1.0 - cyan) * (1.0 - key),
-//          (1.0 - magenta) * (1.0 - key),
-//          (1.0 - yellow) * (1.0 - key)
-//        )
-//      )
+        // https://www.rapidtables.com/convert/color/cmyk-to-rgb.html
+        //      RGB.apply(
+        //        RGB.clamp0to1(
+        //          (1.0 - cyan) * (1.0 - key),
+        //          (1.0 - magenta) * (1.0 - key),
+        //          (1.0 - yellow) * (1.0 - key)
+        //        )
+        //      )
+      }
+      override def similarity(that: CMYK): Double = CMYK.similarity(cmyk, that)
+
+      override def render: String = s"CMYK($cyan, $magenta, $yellow, $key)"
+
+      override def copy: CMYK = NArray[Double](cyan, magenta, yellow, key).asInstanceOf[CMYK]
     }
-    override def similarity(that: CMYK): Double = CMYK.similarity(this, that)
-
-    override def toString: String = s"CMYK($cyan, $magenta, $yellow, $key)"
-
-    override def copy(): VEC = new CMYK(NArray[Double](cyan, magenta, yellow, key)).asInstanceOf[VEC]
   }
-
 }

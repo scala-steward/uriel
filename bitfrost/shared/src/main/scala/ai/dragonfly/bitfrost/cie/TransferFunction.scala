@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost.cie
 
-import ai.dragonfly.math.vector.Vector3
+import slash.vector.*
 import ai.dragonfly.bitfrost.cie.Constant.*
 
 

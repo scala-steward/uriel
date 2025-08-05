@@ -6,17 +6,19 @@ import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
 import ai.dragonfly.mesh.*
 import ai.dragonfly.mesh.shape.*
-import ai.dragonfly.math.Random
-import ai.dragonfly.math.vector.*
+import slash.Random
+import slash.vector.*
 
 trait HSV extends HueSaturation { self: WorkingSpace =>
 
   object HSV extends HueSaturationSpace[HSV] {
 
-    def apply(values: NArray[Double]): HSV = new HSV(dimensionCheck(values, 3))
+    opaque type HSV = Vec[3]
+
+    def apply(values: NArray[Double]): HSV = dimensionCheck(values, 3).asInstanceOf[HSV]
 
     def clamp(values: NArray[Double]): HSV = {
-      dimensionCheck(values, 3)
+      dimensionCheck(values.length, 3)
       clamp(values(0), values(1), values(2))
     }
 
@@ -38,16 +40,15 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
      * }}}
      */
 
-    def apply(hue: Double, saturation: Double, value: Double): HSV = new HSV(NArray[Double](hue, saturation, value))
+    def apply(hue: Double, saturation: Double, value: Double): HSV = {
+      NArray[Double](hue, saturation, value).asInstanceOf[HSV]
+    }
 
-
-    def clamp(hue: Double, saturation: Double, value: Double): HSV = new HSV(
-      NArray[Double](
-        clampHue(hue),
-        clamp0to1(saturation),
-        clamp0to1(value)
-      )
-    )
+    def clamp(hue: Double, saturation: Double, value: Double): HSV = NArray[Double](
+      clampHue(hue),
+      clamp0to1(saturation),
+      clamp0to1(value)
+    ).asInstanceOf[HSV]
 
     /**
      * Factory method for creating instances of the HSV class.  This method validates input parameters and throws an exception
@@ -63,16 +64,15 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
       else None
     }
 
-    def fromRGB(nrgb: RGB): HSV = apply(toHSV(nrgb.red, nrgb.green, nrgb.blue))
+    def fromRGB(nrgb: RGB): HSV = toHSV(nrgb.red, nrgb.green, nrgb.blue)
 
-
-    inline def toHSV(red: Double, green: Double, blue: Double): NArray[Double] = {
+    inline def toHSV(red: Double, green: Double, blue: Double): HSV = {
       val values: NArray[Double] = hueMinMax(red, green, blue)
       values(1) = {  // S
         if (values(2 /*MAX*/) == 0.0) 0.0
         else (values(2 /*MAX*/) - values(1 /*min*/)) / values(2 /*MAX*/)
       }
-      values
+      values.asInstanceOf[HSV]
     }
 
     override def random(r: scala.util.Random = Random.defaultRandom): HSV = apply(
@@ -83,27 +83,46 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
       )
     )
 
+    override def toVec(hsv: HSV): Vec[3] = Vec[3](
+      hsv(1) * Math.cos(slash.degreesToRadians(hsv(0))),
+      hsv(1) * Math.sin(slash.degreesToRadians(hsv(0))),
+      hsv(2)
+    )
+
+    def hue(hsv: HSV): Double = hsv(0)
+
+    def saturation(hsv: HSV): Double = hsv(1)
+
+    def value(hsv: HSV): Double = hsv(2)
   }
 
-  case class HSV private(override val values: NArray[Double]) extends HueSaturation[HSV] {
+  type HSV = HSV.HSV
 
-    inline def hue: Double = values(0)
+  given CylindricalColorModel[HSV] with {
+    extension (hsv: HSV) {
 
-    inline def saturation: Double = values(1)
+      //case class HSV private(override val values: NArray[Double]) extends HueSaturation[HSV] {
 
-    inline def value: Double = values(2)
+      def hue: Double = HSV.hue(hsv)
 
-    // https://www.rapidtables.com/convert/color/hsv-to-rgb.html
-    def toRGB: RGB = {
-      val C = value * saturation
-      RGB.apply(HSV.hcxmToRGBvalues(hue, C, HSV.XfromHueC(hue, C), value - C))
+      def saturation: Double = HSV.saturation(hsv)
+
+      def value: Double = HSV.value(hsv)
+
+      // https://www.rapidtables.com/convert/color/hsv-to-rgb.html
+      def toRGB: RGB = {
+        val C = value * saturation
+        HSV.hcxmToRGBvalues(hue, C, HSV.XfromHueC(hue, C), value - C).asInstanceOf[RGB]
+      }
+
+      override def copy: HSV = NArray[Double](hue, saturation, value).asInstanceOf[HSV]
+
+      override def similarity(that: HSV): Double = HSV.similarity(hsv, that)
+
+      override def render: String = s"HSV($hue, $saturation, $value)"
+
+      override def toXYZ: XYZ = toRGB.toXYZ
     }
 
-    def copy(): HSV = new HSV(NArray[Double](hue, saturation, value))
-
-    override def similarity(that: HSV): Double = HSV.similarity(this, that)
-
-    override val toString: String = s"HSV($hue, $saturation, $value)"
   }
-
 }

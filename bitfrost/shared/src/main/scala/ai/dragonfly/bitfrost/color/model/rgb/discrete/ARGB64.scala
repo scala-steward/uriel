@@ -3,7 +3,7 @@ package ai.dragonfly.bitfrost.color.model.rgb.discrete
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
-import ai.dragonfly.math.{Random, squareInPlace}
+import slash.{Random, squareInPlace}
 
 import scala.language.implicitConversions
 
@@ -13,10 +13,13 @@ trait ARGB64 extends DiscreteRGB { self: WorkingSpace =>
     def apply(argb: Long): ARGB64 = ARGB64(argb)
 
   given Conversion[ARGB64, Long] with
-    def apply(c: ARGB64): Long = c.argb
+    def apply(c: ARGB64): Long = c.asInstanceOf[Long]
 
   object ARGB64 extends UtilDiscreteRGB64[ARGB64] {
-    def apply(argb: Long): ARGB64 = new ARGB64(argb)
+
+    opaque type ARGB64 = Long
+
+    def apply(argb: Long): ARGB64 = argb.asInstanceOf[ARGB64]
 
     /**
      * Factory method to create a fully opaque ARGB64 instance from separate, specified red, green, blue components and
@@ -109,6 +112,7 @@ trait ARGB64 extends DiscreteRGB { self: WorkingSpace =>
     override def random(r: scala.util.Random = Random.defaultRandom): ARGB64 = 0xFFFF000000000000L | r.nextLong(0xFFFFFFFFFFFFL)
   }
 
+  type ARGB64 = ARGB64.ARGB64
 
   /**
    * ARGB64 is the primary case class for representing colors in ARGB64 space.
@@ -125,52 +129,61 @@ trait ARGB64 extends DiscreteRGB { self: WorkingSpace =>
    * ARGB(0xFF0000FF).toString() // returns "ARGB(65535,0,0,65535)"
    * }}}
    */
-  case class ARGB64(argb: Long) extends DiscreteRGB[ARGB64] {
-    /**
-     * @return the alpha component of this color in ARGB64 space.
-     */
-    inline def alpha: Int = (argb >> 48 & 0xFFFFL).toInt
+  given DiscreteRGB[ARGB64] with {
+    extension (argb: ARGB64) {
+      //case class ARGB64(argb: Long) extends DiscreteRGB[ARGB64] {
+      /**
+       * @return the alpha component of this color in ARGB64 space.
+       */
+      override def alpha: Int = (argb >> 48 & 0xFFFFL).toInt
 
-    /**
-     * @return the red component of this color in ARGB64 space.
-     */
-    inline def red: Int = (argb >> 32 & 0xFFFFL).toInt
+      /**
+       * @return the red component of this color in ARGB64 space.
+       */
+      override def red: Int = (argb >> 32 & 0xFFFFL).toInt
 
-    /**
-     * @return the green component of this color in ARGB64 space.
-     */
-    inline def green: Int = (argb >> 16 & 0xFFFFL).toInt
+      /**
+       * @return the green component of this color in ARGB64 space.
+       */
+      override def green: Int = (argb >> 16 & 0xFFFFL).toInt
 
-    /**
-     * @return the blue component of this color in ARGB64 space.
-     */
-    inline def blue: Int = (argb & 0xFFFFL).toInt
+      /**
+       * @return the blue component of this color in ARGB64 space.
+       */
+      override def blue: Int = (argb & 0xFFFFL).toInt
 
-    override def toRGB: RGB = {
-      import ARGB64.MAXD
-      RGB(red.toDouble / MAXD, green.toDouble / MAXD, blue.toDouble / MAXD)
+      override def toRGB: RGB = {
+        import ARGB64.MAXD
+        RGB(red.toDouble / MAXD, green.toDouble / MAXD, blue.toDouble / MAXD)
+      }
+
+      override def similarity(that: ARGB64): Double = ARGB64.similarity(argb, that)
+
+//      /**
+//       * @return true if these colors are equal in ARGB64 space, false otherwise
+//       */
+//      def equals(obj: Any): Boolean = obj match {
+//        case that: ARGB64 => argb == that
+//        case _ => false
+//      }
+
+      /**
+       * @return a hexadecimal string representing the rgba integer for this color.
+       * @example {{{
+       * val c = ARGB64(72,105,183)
+       * c.hex() // returns "ff4869b7"
+       * }}}
+       */
+      def hex: String = java.lang.Long.toHexString(argb)
+
+      override def render: String = s"ARGB64($alpha, $red, $green, $blue)"
+
+      override def toXYZ: XYZ = toRGB.toXYZ
+
+      override def copy: ARGB64 = {
+        val l: Long = argb.asInstanceOf[Long]
+        l.asInstanceOf[ARGB64]
+      }
     }
-
-    override def similarity(that: ARGB64): Double = ARGB64.similarity(this, that)
-
-    /**
-     * @return true if these colors are equal in ARGB64 space, false otherwise
-     */
-    override def equals(obj: Any): Boolean = obj match {
-      case that: ARGB64 => this.argb == that.argb
-      case _ => false
-    }
-
-    /**
-     * @return a hexadecimal string representing the rgba integer for this color.
-     * @example {{{
-     * val c = ARGB64(72,105,183)
-     * c.hex() // returns "ff4869b7"
-     * }}}
-     */
-    def hex(): String = java.lang.Long.toHexString(argb)
-
-    override def toString: String = s"ARGB64($alpha, $red, $green, $blue)"
   }
-
 }

@@ -3,7 +3,8 @@ package ai.dragonfly.bitfrost.color.model.rgb.discrete
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
-import ai.dragonfly.math.{Random, squareInPlace}
+import narr.NArray
+import slash.{Random, squareInPlace}
 
 import scala.language.implicitConversions
 
@@ -13,10 +14,13 @@ trait RGBA64 extends DiscreteRGB { self: WorkingSpace =>
     def apply(rgba: Long): RGBA64 = RGBA64(rgba)
 
   given Conversion[RGBA64, Long] with
-    def apply(c: RGBA64): Long = c.rgba
+    def apply(c: RGBA64): Long = c.asInstanceOf[Long]
 
   object RGBA64 extends UtilDiscreteRGB64[RGBA64] {
-    def apply(rgba: Long): RGBA64 = new RGBA64(rgba)
+
+    opaque type RGBA64 = Long
+
+    def apply(rgba: Long): RGBA64 = rgba.asInstanceOf[RGBA64]
 
     /**
      * Factory method to create a fully opaque RGBA64 instance from separate, specified red, green, blue components and
@@ -109,6 +113,7 @@ trait RGBA64 extends DiscreteRGB { self: WorkingSpace =>
     override def random(r: scala.util.Random = Random.defaultRandom): RGBA64 = RGBA64((r.nextLong(0xFFFFFFFFFFFFL)<< 16) | 0xFFFFL)
   }
 
+  type RGBA64 = RGBA64.RGBA64
 
   /**
    * RGBA64 is the primary case class for representing colors in RGBA64 space.
@@ -125,53 +130,63 @@ trait RGBA64 extends DiscreteRGB { self: WorkingSpace =>
    * RGBA64(0xFF0000FF).toString() // returns "RGBA64(65535,0,0,65535)"
    * }}}
    */
-  case class RGBA64(rgba: Long) extends DiscreteRGB[RGBA64] {
+  given DiscreteRGB[RGBA64] with {
+    extension (rgba: RGBA64) {
+      //case class RGBA64(rgba: Long) extends DiscreteRGB[RGBA64] {
 
-    /**
-     * @return the red component of this color in RGBA64 space.
-     */
-    inline def red: Int = (rgba >> 48 & 0xFFFFL).toInt
+      /**
+       * @return the red component of this color in RGBA64 space.
+       */
+      inline def red: Int = (rgba >> 48 & 0xFFFFL).toInt
 
-    /**
-     * @return the green component of this color in RGBA64 space.
-     */
-    inline def green: Int = (rgba >> 32 & 0xFFFFL).toInt
+      /**
+       * @return the green component of this color in RGBA64 space.
+       */
+      inline def green: Int = (rgba >> 32 & 0xFFFFL).toInt
 
-    /**
-     * @return the blue component of this color in RGBA64 space.
-     */
-    inline def blue: Int = (rgba >> 16 & 0xFFFFL).toInt
+      /**
+       * @return the blue component of this color in RGBA64 space.
+       */
+      inline def blue: Int = (rgba >> 16 & 0xFFFFL).toInt
 
-    /**
-     * @return the alpha component of this color in RGBA64 space.
-     */
-    inline def alpha: Int = (rgba & 0xFFFFL).toInt
+      /**
+       * @return the alpha component of this color in RGBA64 space.
+       */
+      inline def alpha: Int = (rgba & 0xFFFFL).toInt
 
-    override def toRGB: RGB = {
-      import RGBA64.MAXD
-      RGB(red.toDouble / MAXD, green.toDouble / MAXD, blue.toDouble / MAXD)
+      override def toRGB: RGB = {
+        import RGBA64.MAXD
+        RGB(red.toDouble / MAXD, green.toDouble / MAXD, blue.toDouble / MAXD)
+      }
+
+      override def similarity(that: RGBA64): Double = RGBA64.similarity(rgba, that)
+
+//      /**
+//       * @return true if these colors are equal in RGBA space, false otherwise
+//       */
+//      override def equals(obj: Any): Boolean = obj match {
+//        case that: RGBA64 => rgba == that
+//        case _ => false
+//      }
+
+      /**
+       * @return a hexadecimal string representing the rgba integer for this color.
+       * @example {{{
+       * val c = RGBA(72,105,183)
+       * c.hex() // returns "ff4869b7"
+       * }}}
+       */
+      def hex: String = java.lang.Long.toHexString(rgba)
+
+      override def render: String = s"RGBA64($red, $green, $blue, $alpha)"
+
+      override def toXYZ: XYZ = toRGB.toXYZ
+
+      override def copy: RGBA64 = {
+        val l: Long = rgba.asInstanceOf[Long]
+        l.asInstanceOf[RGBA64]
+      }
+
     }
-
-    override def similarity(that: RGBA64): Double = RGBA64.similarity(this, that)
-
-    /**
-     * @return true if these colors are equal in RGBA space, false otherwise
-     */
-    override def equals(obj: Any): Boolean = obj match {
-      case that: RGBA64 => this.rgba == that.rgba
-      case _ => false
-    }
-
-    /**
-     * @return a hexadecimal string representing the rgba integer for this color.
-     * @example {{{
-     * val c = RGBA(72,105,183)
-     * c.hex() // returns "ff4869b7"
-     * }}}
-     */
-    def hex(): String = java.lang.Long.toHexString(rgba)
-
-    override def toString: String = s"RGBA64($red, $green, $blue, $alpha)"
   }
-
 }

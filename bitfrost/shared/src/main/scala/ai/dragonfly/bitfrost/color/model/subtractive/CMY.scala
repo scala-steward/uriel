@@ -4,17 +4,19 @@ import narr.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.mesh.*
 import ai.dragonfly.mesh.shape.*
-import ai.dragonfly.bitfrost.{ColorContext, NormalizedValue}
-import ai.dragonfly.math.Random
-import ai.dragonfly.math.vector.*
+import ai.dragonfly.bitfrost.*
+import slash.Random
+import slash.vector.*
 
 trait CMY { self: WorkingSpace =>
 
-  object CMY extends VectorSpace[CMY] with NormalizedValue {
+  object CMY extends VectorSpace[CMY] {
+
+    opaque type CMY = Vec[3]
 
     override val maxDistanceSquared: Double = 4.0
 
-    def apply(values: NArray[Double]): CMY = new CMY(dimensionCheck(values, 3))
+    def apply(values: NArray[Double]): CMY = dimensionCheck(values, 3).asInstanceOf[CMY]
 
     def apply(cyan: Double, magenta: Double, yellow: Double): CMY = apply(NArray[Double](cyan, magenta, yellow))
 
@@ -51,7 +53,20 @@ trait CMY { self: WorkingSpace =>
       )
     )
 
+    def cyan(cmy: CMY): Double = cmy(0)
+
+    def magenta(cmy: CMY): Double = cmy(1)
+
+    def yellow(cmy: CMY): Double = cmy(2)
+
+    override def euclideanDistanceSquaredTo(cmy1: CMY, cmy2: CMY): Double = cmy1.euclideanDistanceSquaredTo(cmy2)
+
+    override def fromVec(v: Vec[3]): CMY = v.copy
+
+    override def toVec(c: CMY): Vec[3] = c.asInstanceOf[Vec[3]].copy
   }
+
+  type CMY = CMY.CMY
 
   /**
    * CMY is the primary case class for representing colors in CMY space.
@@ -70,30 +85,33 @@ trait CMY { self: WorkingSpace =>
    * }}}
    */
 
-  case class CMY private(override val values: NArray[Double]) extends VectorModel[CMY] {
-    override type VEC = this.type with CMY
+  given VectorColorModel[CMY] with {
+    extension (cmy: CMY) {
+      //  case class CMY private(override val values: NArray[Double]) extends VectorColorModel[CMY] {
+      //    override type VEC = this.type with CMY
 
-    inline def cyan: Double = values(0)
+      def cyan: Double = CMY.cyan(cmy)
 
-    inline def magenta: Double = values(1)
+      def magenta: Double = CMY.magenta(cmy)
 
-    inline def yellow: Double = values(2)
+      def yellow: Double = CMY.yellow(cmy)
 
-    override def toXYZ: XYZ = toRGB.toXYZ
+      override def toXYZ: XYZ = toRGB.toXYZ
 
-    override def toRGB: RGB = RGB.apply(
-      RGB.clamp0to1(
-        1.0 - cyan,
-        1.0 - magenta,
-        1.0 - yellow
+      override def toRGB: RGB = RGB.apply(
+        clamp0to1(
+          1.0 - cyan,
+          1.0 - magenta,
+          1.0 - yellow
+        )
       )
-    )
 
-    override def similarity(that: CMY): Double = CMY.similarity(this, that)
+      override def similarity(that: CMY): Double = CMY.similarity(cmy, that)
 
-    override def toString: String = s"CMY($cyan, $magenta, $yellow)"
+      override def render: String = s"CMY($cyan, $magenta, $yellow)"
 
-    override def copy(): VEC = new CMY(NArray[Double](cyan, magenta, yellow)).asInstanceOf[VEC]
+      override def copy: CMY = cmy.asInstanceOf[Vec[3]].copy.asInstanceOf[CMY]
+    }
   }
 
 }

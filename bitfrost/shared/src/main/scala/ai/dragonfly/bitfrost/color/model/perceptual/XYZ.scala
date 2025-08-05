@@ -5,9 +5,8 @@ import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.spectral.DEFAULT
 import ai.dragonfly.mesh.*
 import ai.dragonfly.mesh.shape.*
-import ai.dragonfly.math.vector.*
-import ai.dragonfly.math.matrix.util.given_Dimensioned_Matrix
-import ai.dragonfly.math.matrix.util.asColumnMatrix
+import slash.vector.*
+import slash.matrix.*
 
 import scala.language.implicitConversions
 
@@ -27,49 +26,61 @@ trait XYZ { self:WorkingSpace =>
 
   object XYZ extends PerceptualSpace[XYZ] {
 
-    def apply(values: NArray[Double]): XYZ = new XYZ(dimensionCheck(values, 3))
+    opaque type XYZ = Vec[3]
 
-    /**
-     * @param L the L* component of the CIE L*a*b* color.
-     * @param a the a* component of the CIE L*a*b* color.
-     * @param b the b* component of the CIE L*a*b* color.
-     * @return an instance of the LAB case class.
-     * @example {{{ val c = LAB(72.872, -0.531, 71.770) }}}
-     */
+    def apply(values: NArray[Double]): XYZ = dimensionCheck(values, 3).asInstanceOf[XYZ]
 
-    def apply(x: Double, y: Double, z: Double): XYZ = apply(NArray[Double](x, z, y))
+    def apply(x: Double, y: Double, z: Double): XYZ = Vec[3](x, z, y)
 
-    override def fromXYZ(xyz: XYZ): XYZ = xyz.copy()
+    override def fromXYZ(xyz: XYZ): XYZ = xyz.asInstanceOf[Vec[3]].copy
 
-  }
+    def x(xyz: XYZ): Double = xyz(0)
 
+    def y(xyz: XYZ): Double = xyz(2)
 
-  case class XYZ private(override val values: NArray[Double]) extends PerceptualModel[XYZ] {
-    override type VEC = this.type with XYZ
+    def z(xyz: XYZ): Double = xyz(1)
 
-    override def copy(): VEC = new XYZ(NArray[Double](x, z, y)).asInstanceOf[VEC]
-
-    inline def x: Double = values(0)
-
-    inline def y: Double = values(2)
-
-    inline def z: Double = values(1)
-
-    override def similarity(that: XYZ): Double = XYZ.similarity(this, that)
-
-    override def toXYZ: XYZ = copy()
-
-    override def toRGB:RGB = {
-      val temp: NArray[Double] = (M_inverse * Vector3(values).asColumnMatrix).getRowPackedCopy()
-      var i:Int = 0; while (i < temp.length) {
+    def toRGB(xyz: XYZ): RGB = {
+      val temp: NArray[Double] = (M_inverse * xyz.asColumnMatrix).values
+      var i: Int = 0;
+      while (i < temp.length) {
         temp(i) = transferFunction.encode(temp(i))
         i += 1
       }
       RGB(temp)
     }
 
-    override def toString: String = s"XYZ($x,$y,$z)"
+    def copy(xyz:XYZ):XYZ = xyz.copy
+
+
+    override def fromVec(v: Vec[3]): XYZ = v
+
+    override def toVec(xyz: XYZ): Vec[3] = xyz.asInstanceOf[Vec[3]].copy
+
   }
 
+  type XYZ = XYZ.XYZ
 
+  given PerceptualColorModel[XYZ] with { //case class XYZ private(override val values: NArray[Double]) extends PerceptualColorModel[XYZ] {
+    extension (xyz: XYZ) {
+      override inline def copy: XYZ = XYZ.copy(xyz)
+
+      def x: Double = XYZ.x(xyz)
+
+      def y: Double = XYZ.y(xyz)
+
+      def z: Double = XYZ.z(xyz)
+
+      override def similarity(that: XYZ): Double = XYZ.similarity(xyz, that)
+
+      override def toXYZ: XYZ = XYZ(x, y, z)
+
+      override def vec:Vec[3] = XYZ.asInstanceOf[Vec[3]].copy
+
+      override def toRGB: RGB = XYZ.toRGB(xyz)
+
+      override def render: String = s"XYZ($x,$y,$z)"
+
+    }
+  }
 }

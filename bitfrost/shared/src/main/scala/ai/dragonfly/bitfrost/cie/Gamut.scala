@@ -3,16 +3,15 @@ package ai.dragonfly.bitfrost.cie
 import narr.{NArray, *}
 import ai.dragonfly.bitfrost.color.spectral.SampleSet
 import ai.dragonfly.bitfrost.visualization.*
-
-import ai.dragonfly.math.matrix.ml.unsupervised.dimreduction.PCA
-import ai.dragonfly.math.matrix.ml.data.*
-import ai.dragonfly.math.squareInPlace
-import ai.dragonfly.math.stats.geometry.Tetrahedron
-import ai.dragonfly.math.stats.probability.distributions.Sampleable
-import ai.dragonfly.math.stats.probability.distributions.stream.{Gaussian, StreamingVectorStats}
-import ai.dragonfly.math.vector.*
+import slash.matrix.ml.unsupervised.dimreduction.PCA
+import slash.matrix.ml.data.*
+import slash.squareInPlace
+import slash.stats.probability.distributions.Sampleable
+import slash.stats.probability.distributions.stream.{Gaussian, StreamingVectorStats}
+import slash.vector.*
 import ai.dragonfly.mesh.*
 import ai.dragonfly.mesh.shape.*
+import slash.geometry.Tetrahedron
 
 import java.io.PrintWriter
 import scala.collection.immutable
@@ -21,22 +20,24 @@ import scala.collection.mutable
 trait Gamut { self: WorkingSpace =>
   object Gamut {
 
-    def computeMaxDistSquared(points: NArray[Vector3], mean: Vector3): Double = {
+    def computeMaxDistSquared(points: NArray[Vec[3]], mean: Vec[3]): Double = {
 
-      val vs: NArray[Vector] = new NArray[Vector](points.length)
+      val vs: NArray[Vec[3]] = NArray.ofSize[Vec[3]](points.length)
       var i:Int = 0; while (i < points.length) {
         vs(i) = points(i) - mean
         i += 1
       }
 
-      val pca = PCA(new StaticUnsupervisedData(vs))
+      val vecSpace = VectorSpace(points.length)
+
+      val pca = PCA(new StaticUnsupervisedData[vecSpace.N, 3](vs))
 
       val mode = pca.basisPairs.head.basisVector
 
       var min: Double = Double.MaxValue
-      var minV: Vector3 = mean
+      var minV: Vec[3] = mean
       var MAX: Double = Double.MinValue
-      var vMAX: Vector3 = mean
+      var vMAX: Vec[3] = mean
 
       points.foreach {
         p =>
@@ -51,21 +52,21 @@ trait Gamut { self: WorkingSpace =>
           }
       }
 
-      minV.euclid.distanceSquaredTo(vMAX)
+      minV.euclideanDistanceSquaredTo(vMAX)
 
     }
 
-    def fromRGB(n: Int = 32, transform: XYZ => Vector3 = (v: XYZ) => Vector3(v.values)): Gamut = {
+    def fromRGB(n: Int = 32, transform: XYZ => Vec[3] = (xyz: XYZ) => xyz.vec): Gamut = {
 
       val m1: Mesh = Cube(1.0, n)
 
       val m2: Mesh = Mesh(
-        NArray.tabulate[Vector3](m1.points.length)((i:Int) => {m1.points(i) * 255.0}),
+        NArray.tabulate[Vec[3]](m1.points.length)((i:Int) => {m1.points(i) * 255.0}),
         m1.triangles
       )
 
       val m3: Mesh = Mesh(
-        m1.points.map((vRGB:Vector3) => transform(RGB(vRGB.values).toXYZ)),
+        m1.points.map((vRGB:Vec[3]) => transform(RGB(vRGB.asInstanceOf[NArray[Double]]).toXYZ)),
         m1.triangles
       )
 
@@ -86,7 +87,7 @@ trait Gamut { self: WorkingSpace =>
 
     def fromSpectralSamples(spectralSamples: SampleSet, illuminant: Illuminant): Gamut = fromSpectralSamples(
       spectralSamples,
-      (v: Vector3) => Vector3(
+      (v: Vec[3]) => Vec[3](
         v.x * illuminant.xₙ,
         v.y * illuminant.yₙ,
         v.z * illuminant.zₙ,
@@ -94,9 +95,9 @@ trait Gamut { self: WorkingSpace =>
     )
 
 
-    def fromSpectralSamples(spectralSamples: SampleSet, transform: Vector3 => Vector3 = (v: Vector3) => v): Gamut = {
+    def fromSpectralSamples(spectralSamples: SampleSet, transform: Vec[3] => Vec[3] = (v: Vec[3]) => v): Gamut = {
 
-      val points: NArray[Vector3] = NArray.tabulate[Vector3](spectralSamples.volumePoints.length)(
+      val points: NArray[Vec[3]] = NArray.tabulate[Vec[3]](spectralSamples.volumePoints.length)(
         (i:Int)=> transform(spectralSamples.volumePoints(i))
       )
 
@@ -147,12 +148,12 @@ trait Gamut { self: WorkingSpace =>
    * @param cumulative
    */
 
-  case class Gamut (volumeMesh:Mesh) extends Sampleable[Vector3] {
+  case class Gamut (volumeMesh:Mesh) extends Sampleable[Vec[3]] {
 
-    val mean: Vector3 = {
-      val sv2:StreamingVectorStats[Vector3] = new StreamingVectorStats[Vector3](3)
-      volumeMesh.points.foreach((p:Vector3) => sv2(p))
-      Vector3(sv2.average().values)
+    val mean: Vec[3] = {
+      val sv2:StreamingVectorStats[3] = new StreamingVectorStats[3]()
+      volumeMesh.points.foreach((p:Vec[3]) => sv2(p))
+      sv2.average()
     }
 
     val maxDistSquared: Double = Gamut.computeMaxDistSquared(volumeMesh.points, mean)
@@ -192,7 +193,7 @@ trait Gamut { self: WorkingSpace =>
       right
     }
 
-    override def random(r: scala.util.Random = ai.dragonfly.math.Random.defaultRandom): Vector3 = {
+    override def random(r: scala.util.Random = slash.Random.defaultRandom): Vec[3] = {
       val x = r.nextDouble()
       val i = getNearestIndex(x)
       if (i < 0 || i > tetrahedra.length) println(s"x = $x, i = $i, cumulative.length = ${cumulative.length}")

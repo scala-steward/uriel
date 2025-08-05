@@ -3,7 +3,7 @@ package ai.dragonfly.bitfrost.color.model.rgb.discrete
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
-import ai.dragonfly.math.{Random, squareInPlace}
+import slash.{Random, squareInPlace}
 
 import scala.language.implicitConversions
 
@@ -13,17 +13,19 @@ trait ARGB32 extends DiscreteRGB { self: WorkingSpace =>
     def apply(jac: java.awt.Color): ARGB32 = ARGB32(jac.getRGB())
 
   given Conversion[ARGB32, java.awt.Color] with
-    def apply(c: ARGB32): java.awt.Color = new java.awt.Color(c.argb, true)
+    def apply(c: ARGB32): java.awt.Color = new java.awt.Color(c, true)
 
   given Conversion[Int, ARGB32] with
     def apply(argb: Int): ARGB32 = ARGB32(argb)
 
   given Conversion[ARGB32, Int] with
-    def apply(c: ARGB32): Int = c.argb
+    def apply(c: ARGB32): Int = c.asInstanceOf[Int]
 
   object ARGB32 extends UtilRGB32[ARGB32] {
 
-    def apply(argb: Int): ARGB32 = new ARGB32(argb)
+    opaque type ARGB32 = Int
+
+    def apply(argb: Int): ARGB32 = argb.asInstanceOf[ARGB32]
 
     /**
      * Factory method to create a fully opaque ARGB instance from separate, specified red, green, blue components and
@@ -111,7 +113,7 @@ trait ARGB32 extends DiscreteRGB { self: WorkingSpace =>
      * @return an ARGB instance encoding the desired grayscale intensity.
      */
     def grayIfValid(intensity: Int): Option[ARGB32] = {
-      if (RGB.valid0to1(intensity)) Some(apply(intensity, intensity, intensity))
+      if (valid0to1(intensity)) Some(apply(intensity, intensity, intensity))
       else None
     }
 
@@ -127,6 +129,7 @@ trait ARGB32 extends DiscreteRGB { self: WorkingSpace =>
     override def random(r: scala.util.Random = Random.defaultRandom): ARGB32 = 0xFF000000 | r.nextInt(0xFFFFFF)
   }
 
+  type ARGB32 = ARGB32.ARGB32
 
   /**
    * ARGB is the primary case class for representing colors in ARGB space.
@@ -143,102 +146,112 @@ trait ARGB32 extends DiscreteRGB { self: WorkingSpace =>
    * ARGB32(0xFF0000FF).toString() // returns "ARGB32(255,0,0,255)"
    * }}}
    */
-  case class ARGB32(argb: Int) extends DiscreteRGB[ARGB32] {
-    /**
-     * @return the alpha component of this color in ARGB space.
-     */
-    inline def alpha: Int = argb >> 24 & 0xff
+  given DiscreteRGB[ARGB32] with {
+    extension (argb: ARGB32) {
 
-    /**
-     * @return the red component of this color in ARGB space.
-     */
-    inline def red: Int = argb >> 16 & 0xff
+      ///case class ARGB32(argb: Int) extends DiscreteRGB[ARGB32] {
+      /**
+       * @return the alpha component of this color in ARGB space.
+       */
+      override inline def alpha: Int = argb >> 24 & 0xff
 
-    /**
-     * @return the green component of this color in ARGB space.
-     */
-    inline def green: Int = argb >> 8 & 0xff
+      /**
+       * @return the red component of this color in ARGB space.
+       */
+      override inline def red: Int = argb >> 16 & 0xff
 
-    /**
-     * @return the blue component of this color in ARGB space.
-     */
-    inline def blue: Int = argb & 0xff
+      /**
+       * @return the green component of this color in ARGB space.
+       */
+      override inline def green: Int = argb >> 8 & 0xff
 
-    override def toRGB: RGB = {
-      import ARGB32.MAXD
-      RGB(red.toDouble / MAXD, green.toDouble / MAXD, blue.toDouble / MAXD)
+      /**
+       * @return the blue component of this color in ARGB space.
+       */
+      override inline def blue: Int = argb & 0xff
+
+      override def toRGB: RGB = {
+        import ARGB32.MAXD
+        RGB(red.toDouble / MAXD, green.toDouble / MAXD, blue.toDouble / MAXD)
+      }
+
+      override def similarity(that: ARGB32): Double = ARGB32.similarity(argb, that)
+
+//      /**
+//       * @return the hashcode.  For all color types, the hashcode function returns the same result as argb
+//       */
+//      def hashCode: Int = argb
+
+//      /**
+//       * @return true if these colors are equal in ARGB32 space, false otherwise
+//       */
+//      def equals(obj: Any): Boolean = obj match {
+//        case that: ARGB32 => argb == that
+//        case _ => false
+//      }
+
+      /**
+       * @return a hexadecimal string representing the rgba integer for this color.
+       * @example {{{
+       * val c = ARGB32(72,105,183)
+       * c.hex() // returns "ff4869b7"
+       * }}}
+       */
+      def hex(): String = Integer.toHexString(argb)
+
+      /**
+       * @return a string representing the color in an html friendly way.
+       * @example {{{
+       * val c = ARGB32(72,105,183)
+       * c.html() // returns "#4869b7"
+       * }}}
+       */
+      def html(): String = "#" + Integer.toHexString(argb | 0xff000000).substring(2)
+
+      /**
+       * @return a string representing the color in an SVG friendly way.
+       * @example {{{
+       * val c = ARGB32(72,105,183)
+       * c.svg() // returns "rgb(72,105,183)"
+       * }}}
+       *
+       * if the color has an alpha value less than 255, in other words, if the color has any measure of translucency,
+       * this method returns an rgba svg string instead of an rgb string.
+       * @example {{{
+       * val c = ARGB32(72,105,183, 128)
+       * c.svg() // returns "rgba(72,105,183,0.501960813999176)"
+       * }}}
+       */
+      def svg(): String = {
+        if (alpha < 255) s"rgba($red, $green, $blue, ${alpha / 255.0})"
+        else s"rgb($red, $green, $blue)"
+      }
+
+      /**
+       * @return a string representing the color in a CSS friendly way.
+       * @example {{{
+       * val c = ARGB32(72,105,183)
+       * c.css() // returns "rgb(72,105,183)"
+       * }}}
+       *
+       * if the color has an alpha value less than 255, in other words, if the color has any measure of translucency,
+       * this method returns an rgba svg string instead of an rgb string.
+       * @example {{{
+       * val c = ARGB32(72,105,183, 128)
+       * c.svg() // returns "rgba(72,105,183,0.501960813999176)"
+       * }}}
+       */
+      def css: () => String = svg
+
+      override def render: String = s"ARGB32($alpha, $red, $green, $blue)"
+
+      override def toXYZ: XYZ = toRGB.toXYZ
+
+      override def copy: ARGB32 = {
+        val i:Int = argb.asInstanceOf[Int]
+        i.asInstanceOf[ARGB32]
+      }
     }
-
-    override def similarity(that: ARGB32): Double = ARGB32.similarity(this, that)
-
-    /**
-     * @return the hashcode.  For all color types, the hashcode function returns the same result as argb
-     */
-    override def hashCode(): Int = argb
-
-    /**
-     * @return true if these colors are equal in ARGB32 space, false otherwise
-     */
-    override def equals(obj: Any): Boolean = obj match {
-      case that: ARGB32 => this.argb == that.argb
-      case _ => false
-    }
-
-    /**
-     * @return a hexadecimal string representing the rgba integer for this color.
-     * @example {{{
-     * val c = ARGB32(72,105,183)
-     * c.hex() // returns "ff4869b7"
-     * }}}
-     */
-    def hex(): String = Integer.toHexString(argb)
-
-    /**
-     * @return a string representing the color in an html friendly way.
-     * @example {{{
-     * val c = ARGB32(72,105,183)
-     * c.html() // returns "#4869b7"
-     * }}}
-     */
-    def html(): String = "#" + Integer.toHexString(argb | 0xff000000).substring(2)
-
-    /**
-     * @return a string representing the color in an SVG friendly way.
-     * @example {{{
-     * val c = ARGB32(72,105,183)
-     * c.svg() // returns "rgb(72,105,183)"
-     * }}}
-     *
-     * if the color has an alpha value less than 255, in other words, if the color has any measure of translucency,
-     * this method returns an rgba svg string instead of an rgb string.
-     * @example {{{
-     * val c = ARGB32(72,105,183, 128)
-     * c.svg() // returns "rgba(72,105,183,0.501960813999176)"
-     * }}}
-     */
-    def svg(): String = {
-      if (alpha < 255) s"rgba($red, $green, $blue, ${alpha / 255.0})"
-      else s"rgb($red, $green, $blue)"
-    }
-
-    /**
-     * @return a string representing the color in a CSS friendly way.
-     * @example {{{
-     * val c = ARGB32(72,105,183)
-     * c.css() // returns "rgb(72,105,183)"
-     * }}}
-     *
-     * if the color has an alpha value less than 255, in other words, if the color has any measure of translucency,
-     * this method returns an rgba svg string instead of an rgb string.
-     * @example {{{
-     * val c = ARGB32(72,105,183, 128)
-     * c.svg() // returns "rgba(72,105,183,0.501960813999176)"
-     * }}}
-     */
-    def css: () => String = svg
-
-    override def toString: String = s"ARGB32($alpha, $red, $green, $blue)"
   }
-
 
 }

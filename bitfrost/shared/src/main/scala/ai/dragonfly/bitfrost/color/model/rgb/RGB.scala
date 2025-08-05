@@ -4,14 +4,11 @@ import narr.*
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.*
 import ai.dragonfly.bitfrost.color.model.*
-import ai.dragonfly.bitfrost.NormalizedValue
 import ai.dragonfly.mesh.*
 import ai.dragonfly.mesh.shape.*
-import ai.dragonfly.math.Random
-import ai.dragonfly.math.matrix.*
-import ai.dragonfly.math.vector.*
-import ai.dragonfly.math.matrix.util.given_Dimensioned_Matrix
-import ai.dragonfly.math.matrix.util.asColumnMatrix
+import slash.Random
+import slash.matrix.*
+import slash.vector.*
 
 import scala.language.implicitConversions
 
@@ -19,11 +16,13 @@ trait RGB { self: WorkingSpace =>
 
   val `1/255`: Double = 1.0 / 255.0
 
-  object RGB extends VectorSpace[RGB] with NormalizedValue {
+  object RGB extends VectorSpace[RGB] {
+
+    opaque type RGB = Vec[3]
 
     override val maxDistanceSquared: Double = 9.0
 
-    def apply(values: NArray[Double]): RGB = new RGB(dimensionCheck(values, 3))
+    def apply(values: NArray[Double]): RGB = dimensionCheck(values, 3).asInstanceOf[RGB]
 
     /**
      * Factory method to create a fully opaque RGB instance from separate, specified red, green, blue components and
@@ -46,7 +45,7 @@ trait RGB { self: WorkingSpace =>
 
     override def fromXYZ(xyz:XYZ):RGB = xyz.toRGB
 
-    override def fromRGB(rgb: RGB): RGB = apply(rgb.red, rgb.green, rgb.blue)
+    //override def fromRGB(rgb: RGB): RGB = apply(rgb.red, rgb.green, rgb.blue)
 
     /**
      * Factory method to create a fully Opaque RGB color; one with an alpha value of 1.0.
@@ -76,39 +75,51 @@ trait RGB { self: WorkingSpace =>
      *
      * @return a randomly generated color sampled from the RGB Color Space.
      */
-    override def random(r: scala.util.Random = Random.defaultRandom): RGB = apply(
-      NArray[Double](r.nextDouble(), r.nextDouble(), r.nextDouble())
-    )
+    override def random(r: scala.util.Random = Random.defaultRandom): RGB = Vec[3](r.nextDouble(), r.nextDouble(), r.nextDouble())
 
+    def red(rgb:RGB):Double = rgb(0)
+    def green(rgb:RGB):Double = rgb(1)
+    def blue(rgb:RGB):Double = rgb(2)
+
+    override def euclideanDistanceSquaredTo(c1: RGB, c2: RGB): Double = c1.euclideanDistanceSquaredTo(c2)
+
+    override def fromRGB(rgb: RGB): RGB = rgb.copy
+
+    override def fromVec(v: Vec[3]): RGB = v
+
+    override def toVec(rgb: RGB): Vec[3] = rgb.asInstanceOf[Vec[3]].copy
 
   }
 
-  case class RGB private(override val values: NArray[Double]) extends VectorModel[RGB] {
-    override type VEC = this.type with RGB
+//  case class RGB private(override val values: NArray[Double]) extends VectorColorModel[RGB] {
+//    override type VEC = this.type with RGB
+  type RGB = RGB.RGB
 
-    inline def red: Double = values(0)
+  given VectorColorModel[RGB] with {
+    extension (rgb: RGB) {
 
-    inline def green: Double = values(1)
+      def red: Double = RGB.red(rgb)
 
-    inline def blue: Double = values(2)
+      def green: Double = RGB.green(rgb)
 
-    override val toString: String = s"RGB($red, $green, $blue)"
+      def blue: Double = RGB.blue(rgb)
 
-    override def copy(): VEC = new RGB(NArray[Double](red, green, blue)).asInstanceOf[VEC]
+      override def render: String = s"RGB($red, $green, $blue)"
 
-    def toXYZ: XYZ = XYZ(
-      (M * Matrix(
-        NArray[NArray[Double]](
-          NArray[Double](transferFunction.decode(red)),
-          NArray[Double](transferFunction.decode(green)),
-          NArray[Double](transferFunction.decode(blue))
-        )
-      )).getRowPackedCopy().asInstanceOf[NArray[Double]]
-    )
+      def copy: RGB = RGB(red, green, blue)
 
-    override def similarity(that: RGB): Double = RGB.similarity(this, that)
+      override def toXYZ: XYZ = {
+        (M * Mat[3, 1](
+          transferFunction.decode(red),
+          transferFunction.decode(green),
+          transferFunction.decode(blue)
+        )).values.asInstanceOf[XYZ]
+      }
 
-    override def toRGB: RGB = RGB(red, green, blue)
+      override def similarity(that: RGB): Double = RGB.similarity(rgb, that)
+
+      override def toRGB: RGB = RGB(red, green, blue)
+    }
+
   }
-
 }

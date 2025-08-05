@@ -4,34 +4,31 @@ import narr.*
 import ai.dragonfly.bitfrost.ColorContext
 import ai.dragonfly.bitfrost.cie.*
 import ai.dragonfly.bitfrost.cie.Constant.*
-import ai.dragonfly.math.stats.geometry.Tetrahedron
-import ai.dragonfly.math.vector.*
-import ai.dragonfly.math.{Random, cubeInPlace}
+import slash.vector.{Vec, *}
+import slash.{Random, cubeInPlace}
 
 trait Luv { self: WorkingSpace =>
 
   object UV {
 
-    private inline def getWeight(xyz: XYZ): Double = 1.0 / (xyz.x + xyz.y + xyz.z)
+    //private inline def getWeight(xyz: XYZ): Double =
 
     def fromXYZ(xyz: XYZ): UV = {
 
-      var w: Double = getWeight(xyz)
+      var w: Double = 1.0 / (xyz.x + xyz.y + xyz.z)
 
       val x: Double = w * xyz.x
       val y: Double = w * xyz.y
       w = 1.0 / (6.0 * y - x + 1.5)
       if (w.isNaN) UV(0.0, 0.0)
-      UV(2.0 * x * w, 4.5 * y * w)
-
+      else UV(2.0 * x * w, 4.5 * y * w)
     }
-
   }
 
   case class UV(u: Double, v: Double) {
-    def xy: Vector2 = {
+    def xy: Vec[2] = {
       val denominator: Double = (6.0 * u) - (16.0 * v) + 12
-      Vector2(
+      Vec[2](
         (9.0 * u) / denominator, // X
         (9.0 * v) / denominator // y
       )
@@ -40,7 +37,9 @@ trait Luv { self: WorkingSpace =>
 
   object Luv extends PerceptualSpace[Luv] {
 
-    def apply(values: NArray[Double]): Luv = new Luv(dimensionCheck(values, 3))
+    opaque type Luv = Vec[3]
+
+    def apply(values: NArray[Double]): Luv = dimensionCheck(values, 3).asInstanceOf[Luv]
 
     /**
      * @constructor Create a new SlowSlimLuv object from three float values.  This constructor does not validate input parameters.
@@ -57,7 +56,7 @@ trait Luv { self: WorkingSpace =>
 
     val UV(uₙ: Double, vₙ: Double) = UV.fromXYZ(XYZ(illuminant.whitePointValues))
 
-    inline def fL(t: Double): Double = if (t > ϵ) 116.0 * Math.cbrt(t) - 16.0 else k * t
+    def fL(t: Double): Double = if (t > ϵ) 116.0 * Math.cbrt(t) - 16.0 else k * t
 
     def fromXYZ(xyz: XYZ): Luv = {
 
@@ -80,6 +79,16 @@ trait Luv { self: WorkingSpace =>
 //    override val rgbGamut:Gamut = Gamut.fromRGB(transform = (v:XYZ) => Vector3(fromXYZ(v).values))
 
     //    override def toString:String = s"${illuminant}L*u*v*"
+
+    def L(luv: Luv): Double = luv(2)
+
+    def u(luv: Luv): Double = luv(0)
+
+    def v(luv: Luv): Double = luv(1)
+
+    override def fromVec(v: Vec[3]): Luv = v
+
+    override def toVec(luv: Luv): Vec[3] = luv.asInstanceOf[Vec[3]].copy
   }
 
   /**
@@ -88,42 +97,47 @@ trait Luv { self: WorkingSpace =>
    * @see [[https://en.wikipedia.org/wiki/CIELUV]] for more information on CIE L*u*v*.
    */
 
-  case class Luv private(override val values: NArray[Double]) extends PerceptualModel[Luv] {
-    override type VEC = this.type with Luv
+//  case class Luv private(override val values: NArray[Double]) extends PerceptualColorModel[Luv] {
+//    override type VEC = this.type with Luv
 
-    inline def L: Double = values(2)
+  type Luv = Luv.Luv
 
-    inline def u: Double = values(0)
+  given PerceptualColorModel[Luv] with {
+    extension (luv: Luv) {
 
-    inline def v: Double = values(1)
+      def L: Double = Luv.L(luv)
 
-    override def toString: String = s"L⭑u⭑v⭑($L,$u,$v)"
+      def u: Double = Luv.u(luv)
 
-    override def copy(): VEC = new Luv(NArray[Double](u, v, L)).asInstanceOf[VEC]
+      def v: Double = Luv.v(luv)
 
-    // LUV to XYZ and helpers:
-    inline def flInverse(t: Double): Double = if (t > kϵ) {
-      cubeInPlace(`1/116` * (t + 16.0)) //`1/116³` * cubeInPlace(t + 16.0) // ((L+16)/116)^3 = (L + 16)^3 / 116^3 = (L + 16)^3 / 1560896.0
-    } else `1/k` * t
+      override def render: String = s"L⭑u⭑v⭑($L,$u,$v)"
 
-    def toXYZ: XYZ = {
+      override def copy: Luv = Luv(u, v, L)
 
-      val uₓ: Double = (u / (13.0 * L)) + Luv.uₙ
-      val vₓ: Double = (v / (13.0 * L)) + Luv.vₙ
+      // LUV to XYZ and helpers:
+      def flInverse(t: Double): Double = if (t > kϵ) {
+        cubeInPlace(`1/116` * (t + 16.0)) //`1/116³` * cubeInPlace(t + 16.0) // ((L+16)/116)^3 = (L + 16)^3 / 116^3 = (L + 16)^3 / 1560896.0
+      } else `1/k` * t
 
-      val Y: Double = flInverse(L)
-      val X: Double = 9.0 * Y * uₓ / (4.0 * vₓ)
-      val Z: Double = (3.0 * Y / vₓ) - (5.0 * Y) - (X / 3.0)
+      def toXYZ: XYZ = {
 
-      XYZ(X, Y, Z)
+        val uₓ: Double = (u / (13.0 * L)) + Luv.uₙ
+        val vₓ: Double = (v / (13.0 * L)) + Luv.vₙ
+
+        val Y: Double = flInverse(L)
+        val X: Double = 9.0 * Y * uₓ / (4.0 * vₓ)
+        val Z: Double = (3.0 * Y / vₓ) - (5.0 * Y) - (X / 3.0)
+
+        XYZ(X, Y, Z)
+      }
+
+      override def toRGB: RGB = toXYZ.toRGB
+
+      override def similarity(that: Luv): Double = {
+        Luv.similarity(luv, that)
+      }
     }
-
-    override def toRGB: RGB = toXYZ.toRGB
-
-    override def similarity(that: Luv): Double = {
-      Luv.similarity(this, that)
-    }
-
   }
 
 }

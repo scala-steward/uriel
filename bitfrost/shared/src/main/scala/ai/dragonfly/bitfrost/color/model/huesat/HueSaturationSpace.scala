@@ -1,31 +1,24 @@
 package ai.dragonfly.bitfrost.color.model.huesat
 
 import narr.*
-import ai.dragonfly.bitfrost.NormalizedValue
+import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
 import ai.dragonfly.mesh.*
 import ai.dragonfly.mesh.shape.*
-import ai.dragonfly.math.{degreesToRadians, radiansToDegrees, squareInPlace}
-import ai.dragonfly.math.Constant.π
-import ai.dragonfly.math.vector.*
+import slash.{degreesToRadians, radiansToDegrees, squareInPlace}
+import slash.Constant.π
+import slash.vector.{Vec, *}
 
 trait HueSaturation { self: WorkingSpace =>
 
-  trait HueSaturation[C <: HueSaturation[C]] extends CylindricalModel[C] {
-    def hue: Double
-    def saturation: Double
-
-    override def toXYZ: XYZ = toRGB.toXYZ
-  }
-
-  trait HueSaturationSpace[C <: HueSaturation[C]] extends CylindricalSpace[C] with NormalizedValue {
+  trait HueSaturationSpace[C: CylindricalColorModel] extends CylindricalSpace[C] {
 
     def apply(h: Double, s: Double, lv: Double): C
 
     inline def validHue(angle: Double): Boolean = angle >= 0f && angle <= 360.0
 
-    inline def clampHue(angle: Double): Double = ((angle % 360.0d) + 360.0d) % 360.0d // Aly Cerruti's angle santization function from nose
+    inline def clampHue(angle: Double): Double = ((angle % 360.0d) + 360.0d) % 360.0d // Aly Cerruti's angle sanitization function from nose
 
     inline def hueMinMax(red: Double, green: Double, blue: Double): NArray[Double] = {
       // hue extractor based on a scala implementation in project nose: https://gitlab.com/srnb/nose/-/blob/master/nose/src/main/scala/tf/bug/nose/space/rgb/StandardRGB.scala
@@ -48,13 +41,7 @@ trait HueSaturation { self: WorkingSpace =>
       )
     }
 
-    override def toVector3(c: C): Vector3 = Vector3(
-      c.values(1) * Math.cos(degreesToRadians(c.values(0))),
-      c.values(1) * Math.sin(degreesToRadians(c.values(0))),
-      c.values(2)
-    )
-
-    override def fromVector3(v:Vector3): C = {
+    override def fromVec(v:Vec[3]): C = {
       val r:Double = Math.sqrt(squareInPlace(v.x) + squareInPlace(v.y))
       val θ:Double = π + Math.atan2(v.y, v.x)
       apply(
@@ -66,10 +53,10 @@ trait HueSaturation { self: WorkingSpace =>
 
     override val maxDistanceSquared: Double = 6.0
 
-    override def distanceSquared(c1: C, c2: C): Double = toVector3(c1).euclid.distanceSquaredTo(toVector3(c2))
+    override def euclideanDistanceSquaredTo(c1: C, c2: C): Double = toVec(c1).euclideanDistanceSquaredTo(toVec(c2))
 
-    override def weightedAverage(c1: C, w1: Double, c2: C, w2: Double): C = fromVector3(
-      (toVector3(c1) * w1) + (toVector3(c2) * w2)
+    override def weightedAverage(c1: C, w1: Double, c2: C, w2: Double): C = fromVec(
+      (toVec(c1) * w1) + (toVec(c2) * w2)
     )
 
     inline def hcxmToRGBvalues(hue: Double, c: Double, x: Double, m: Double): NArray[Double] = {
@@ -87,7 +74,6 @@ trait HueSaturation { self: WorkingSpace =>
     inline def XfromHueC(H: Double, C: Double): Double = C * (1.0 - Math.abs(((H / 60.0) % 2.0) - 1.0))
 
     override def fromXYZ(xyz: XYZ): C = fromRGB(xyz.toRGB)
-
 
   }
 }

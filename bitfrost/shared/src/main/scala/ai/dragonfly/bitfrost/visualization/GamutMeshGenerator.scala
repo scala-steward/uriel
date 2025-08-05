@@ -1,12 +1,13 @@
 package ai.dragonfly.bitfrost.visualization
 
 import ai.dragonfly.bitfrost.ColorContext
+import ai.dragonfly.bitfrost.ColorContext.sRGB.ColorModel
 import ai.dragonfly.bitfrost.cie.{ChromaticAdaptation, WorkingSpace}
 import ai.dragonfly.bitfrost.color.model.rgb.RGB
 import ai.dragonfly.bitfrost.color.model.huesat.*
 import ai.dragonfly.bitfrost.color.model.subtractive.*
 import ai.dragonfly.bitfrost.color.model.perceptual.*
-import ai.dragonfly.math.vector.Vector3
+import slash.vector.*
 import ai.dragonfly.mesh.*
 import ai.dragonfly.mesh.shape.*
 
@@ -17,53 +18,52 @@ class GamutMeshGenerator(val ws:WorkingSpace) {
 
   lazy val fullGamutXYZ:ws.Gamut = ws.Gamut.fromSpectralSamples(
     ws.cmf,
-    (v:Vector3) => Vector3(
+    (v:Vec[3]) => Vec[3](
       ws.whitePoint.x * v.x,
       ws.whitePoint.y * v.y,
       ws.whitePoint.z * v.z
     )
   )
 
-  val XYZtoARGB32:Vector3 => ColorContext.sRGB.ARGB32 = {
+  val XYZtoARGB32:Vec[3] => ColorContext.sRGB.ARGB32 = {
     import ColorContext.sRGB
     if (ws == sRGB.ARGB32) {
-      (v: Vector3) => sRGB.ARGB32.fromXYZ(sRGB.XYZ(v.values))
+      (v: Vec[3]) => sRGB.ARGB32.fromXYZ(sRGB.XYZ(v.asNativeArray))
     } else {
       val chromaticAdapter: ChromaticAdaptation[ws.type, sRGB.type] = ChromaticAdaptation[ws.type, sRGB.type](ws, sRGB)
-      (v: Vector3) => sRGB.ARGB32.fromXYZ(chromaticAdapter(ws.XYZ(v.values)))
+      (v: Vec[3]) => sRGB.ARGB32.fromXYZ(chromaticAdapter(ws.XYZ(v.asNativeArray)))
     }
   }
 
-  def fullGamut(space:WorkingSpace#PerceptualSpace[_]):ColorGamutVolumeMesh = space match {
+  def fullGamut[C:ColorModel](space:WorkingSpace#PerceptualSpace[C]):ColorGamutVolumeMesh = space match {
     case _:ws.XYZ.type => ColorGamutVolumeMesh( fullGamutXYZ.volumeMesh, XYZtoARGB32 )
-    case wsSpace:ws.PerceptualSpace[_] => ColorGamutVolumeMesh(
+    case wsSpace:ws.PerceptualSpace[C] => ColorGamutVolumeMesh(
         fullGamutXYZ.volumeMesh.transform(
-          (v: Vector3) => wsSpace.toVector3(wsSpace.fromXYZ(ws.XYZ(v.values)))
+          (v: Vec[3]) => wsSpace.toVec(wsSpace.fromXYZ(ws.XYZ(v.asNativeArray)))
         ),
-        (v:Vector3) => XYZtoARGB32(Vector3(space.fromVector3(v).toXYZ.values))
+        (v:Vec[3]) => XYZtoARGB32(space.fromVec(v).toXYZ.asInstanceOf[Vec[3]])
       )
     case _ => throw Exception("Wrong Working Space!")
   }
 
-  def usableGamut(space:WorkingSpace#Space[_]):ColorGamutVolumeMesh = ColorGamutVolumeMesh(
+  def usableGamut[C:ColorModel](space:WorkingSpace#VectorSpace[C]):ColorGamutVolumeMesh = ColorGamutVolumeMesh(
     space match {
-      case perceptualSpace: ws.PerceptualSpace[_] => perceptualSpace.gamut.volumeMesh
-      case _: ws.VectorSpace[_] => Cube()
-      case _: ws.CylindricalSpace[_] =>
+      case perceptualSpace: ws.PerceptualSpace[C] => perceptualSpace.gamut.volumeMesh
+      case _: ws.CylindricalSpace[C] =>
         try {
           if (space == ws.asInstanceOf[HSL].HSL) Cylinder(sideSegments = 64)
           else if (space == ws.asInstanceOf[HSV].HSV) Cylinder(capSegments = 6)
-          else null
+          else throw Exception("Kick the can down the road!")
         } catch {
-          case _ => try {
+          case _ =>
             if (space == ws.asInstanceOf[HSV].HSV) Cylinder(capSegments = 6)
-            else null
-          } catch { _ => null }
+            else throw Exception("Kick the can down the road!")
         }
+      case _: ws.VectorSpace[C] => Cube()
     },
-    (v:Vector3) => XYZtoARGB32(Vector3(space.fromVector3(v).toXYZ.values))
+    (v:Vec[3]) => XYZtoARGB32((space.fromVec(v)).toXYZ.asInstanceOf[Vec[3]])
   )
 
 }
 
-case class ColorGamutVolumeMesh(mesh:Mesh, vertexColorMapper:Vector3 => ColorContext.sRGB.ARGB32)
+case class ColorGamutVolumeMesh(mesh:Mesh, vertexColorMapper:Vec[3] => ColorContext.sRGB.ARGB32)

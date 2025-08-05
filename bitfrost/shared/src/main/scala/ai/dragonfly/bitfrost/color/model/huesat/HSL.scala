@@ -6,13 +6,15 @@ import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
 import ai.dragonfly.mesh.*
 import ai.dragonfly.mesh.shape.*
-import ai.dragonfly.math.Random
-import ai.dragonfly.math.vector.*
+import slash.Random
+import slash.vector.*
 
 trait HSL extends HueSaturation { self: WorkingSpace =>
   object HSL extends HueSaturationSpace[HSL] {
 
-    def apply(values: NArray[Double]): HSL = new HSL(dimensionCheck(values, 3))
+    opaque type HSL = Vec[3]
+
+    def apply(values: NArray[Double]): HSL = dimensionCheck(values, 3).asInstanceOf[HSL]
 
     def clamp(values: NArray[Double]): HSL = {
       dimensionCheck(values, 3)
@@ -35,19 +37,17 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
      * c.toString()  // returns "HSL(211.000,75.000,33.333)"
      * }}}
      */
-    def apply(hue: Double, saturation: Double, lightness: Double): HSL = new HSL(
-      NArray[Double](hue, saturation, lightness)
-    )
+    def apply(hue: Double, saturation: Double, lightness: Double): HSL = {
+      NArray[Double](hue, saturation, lightness).asInstanceOf[HSL]
+    }
 
-    def clamp(hue: Double, saturation: Double, lightness: Double): HSL = new HSL(
-      NArray[Double](
-        clampHue(hue),
-        clamp0to1(saturation),
-        clamp0to1(lightness)
-      )
-    )
+    def clamp(hue: Double, saturation: Double, lightness: Double): HSL = NArray[Double](
+      clampHue(hue),
+      clamp0to1(saturation),
+      clamp0to1(lightness)
+    ).asInstanceOf[HSL]
 
-    def fromRGB(nrgb: RGB): HSL = apply(toHSL(nrgb.red, nrgb.green, nrgb.blue))
+    def fromRGB(nrgb: RGB): HSL = toHSL(nrgb.red, nrgb.green, nrgb.blue)
 
     /**
      * Factory method for creating instances of the HSL class.  This method validates input parameters and throws an exception
@@ -63,7 +63,7 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
       else None
     }
 
-    inline def toHSL(red: Double, green: Double, blue: Double): NArray[Double] = {
+    inline def toHSL(red: Double, green: Double, blue: Double): HSL = {
       val values: NArray[Double] = hueMinMax(red, green, blue)
 
       val delta: Double = values(2 /*MAX*/) - values(1 /*min*/)
@@ -71,7 +71,7 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
 
       values(1) = if (delta == 0.0) 0.0 else delta / (1.0 - Math.abs((L) - 1.0))
       values(2) = 0.5 * L // (min + max) / 2
-      values
+      values.asInstanceOf[HSL]
     }
 
     override def random(r: scala.util.Random = Random.defaultRandom): HSL = apply(
@@ -82,43 +82,61 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
       )
     )
 
+    override def toVec(hsl: HSL): Vec[3] = Vec[3](
+      hsl(1) * Math.cos(slash.degreesToRadians(hsl(0))),
+      hsl(1) * Math.sin(slash.degreesToRadians(hsl(0))),
+      hsl(2)
+    )
+
+    def hue(hsl: HSL): Double = hsl(0)
+
+    def saturation(hsl: HSL): Double = hsl(1)
+
+    def lightness(hsl: HSL): Double = hsl(2)
+
   }
 
-  case class HSL private(override val values: NArray[Double]) extends HueSaturation[HSL] {
+  type HSL = HSL.HSL
 
-    inline def hue: Double = values(0)
+  given CylindricalColorModel[HSL] with {
+    extension (hsl: HSL) {
+  //case class HSL private(override val values: NArray[Double]) extends HueSaturation[HSL] {
 
-    inline def saturation: Double = values(1)
+      def hue: Double = HSL.hue(hsl)
 
-    inline def lightness: Double = values(2)
+      def saturation: Double = HSL.saturation(hsl)
 
-    override def similarity(that: HSL): Double = HSL.similarity(this, that)
+      def lightness: Double = HSL.lightness(hsl)
 
-    def copy(): HSL = new HSL(NArray[Double](hue, saturation, lightness))
+      override def similarity(that: HSL): Double = HSL.similarity(hsl, that)
 
-    def toRGB: RGB = {
-      // https://www.rapidtables.com/convert/color/hsl-to-rgb.html
-      val C = (1.0 - Math.abs((2 * lightness) - 1.0)) * saturation
-      RGB.apply(
-        HSL.hcxmToRGBvalues(
-          hue,
-          C,
-          HSL.XfromHueC(hue, C), // X
-          lightness - (0.5 * C) // m
+      override def copy: HSL = NArray[Double](hue, saturation, lightness).asInstanceOf[HSL]
+
+      def toRGB: RGB = {
+        // https://www.rapidtables.com/convert/color/hsl-to-rgb.html
+        val C = (1.0 - Math.abs((2 * lightness) - 1.0)) * saturation
+        RGB.apply(
+          HSL.hcxmToRGBvalues(
+            hue,
+            C,
+            HSL.XfromHueC(hue, C), // X
+            lightness - (0.5 * C) // m
+          )
         )
-      )
+      }
+
+      override def toXYZ: XYZ = toRGB.toXYZ
+
+      override def render: String = s"HSL($hue, $saturation, $lightness)"
+
+      /**
+       * @return a string representing the color in an SVG friendly way.
+       * @example {{{
+       * val c = HSL(211f, 75f, 33.3333f)
+       * c.svg() // returns "hsl(211.000,75.0%,33.3%)"
+       * }}}
+       */
+      def svg(): String = s"hsl(${f"$hue%1.3f"}, ${f"$saturation%1.1f"}%, ${f"$lightness%1.1f"}%)"
     }
-
-    override val toString: String = s"HSL($hue, $saturation, $lightness)"
-
-    /**
-     * @return a string representing the color in an SVG friendly way.
-     * @example {{{
-     * val c = HSL(211f, 75f, 33.3333f)
-     * c.svg() // returns "hsl(211.000,75.0%,33.3%)"
-     * }}}
-     */
-    def svg(): String = s"hsl(${f"$hue%1.3f"}, ${f"$saturation%1.1f"}%, ${f"$lightness%1.1f"}%)"
   }
-
 }
