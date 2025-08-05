@@ -1,0 +1,117 @@
+package ai.dragonfly.uriel.color.model.subtractive
+
+import narr.*
+import ai.dragonfly.uriel.cie.WorkingSpace
+import ai.dragonfly.mesh.*
+import ai.dragonfly.mesh.shape.*
+import ai.dragonfly.uriel.*
+import slash.Random
+import slash.vector.*
+
+trait CMY { self: WorkingSpace =>
+
+  object CMY extends VectorSpace[CMY] {
+
+    opaque type CMY = Vec[3]
+
+    override val maxDistanceSquared: Double = 4.0
+
+    def apply(values: NArray[Double]): CMY = dimensionCheck(values, 3).asInstanceOf[CMY]
+
+    def apply(cyan: Double, magenta: Double, yellow: Double): CMY = apply(NArray[Double](cyan, magenta, yellow))
+
+
+    /**
+     * Factory method for creating instances of the CMY class.
+     * This method validates input parameters at the cost of some performance.
+     *
+     * @param cyan    a value between [0-1]
+     * @param magenta a value between [0-1]
+     * @param yellow  a value between [0-1]
+     * @return an instance of the CMY class.
+     */
+    def getIfValid(cyan: Double, magenta: Double, yellow: Double): Option[CMY] = {
+      if (valid0to1(cyan, magenta, yellow)) Some(apply(cyan, magenta, yellow))
+      else None
+    }
+
+    override def random(r: scala.util.Random = Random.defaultRandom): CMY = apply(
+      NArray[Double](
+        r.nextDouble(),
+        r.nextDouble(),
+        r.nextDouble()
+      )
+    )
+
+    override def fromXYZ(xyz: XYZ): CMY = fromRGB(xyz.toRGB)
+
+    def fromRGB(rgb: RGB): CMY = apply(
+      clamp0to1(
+      1.0 - rgb.red,
+      1.0 - rgb.green,
+      1.0 - rgb.blue
+      )
+    )
+
+    def cyan(cmy: CMY): Double = cmy(0)
+
+    def magenta(cmy: CMY): Double = cmy(1)
+
+    def yellow(cmy: CMY): Double = cmy(2)
+
+    override def euclideanDistanceSquaredTo(cmy1: CMY, cmy2: CMY): Double = cmy1.euclideanDistanceSquaredTo(cmy2)
+
+    override def fromVec(v: Vec[3]): CMY = v.copy
+
+    override def toVec(c: CMY): Vec[3] = c.asInstanceOf[Vec[3]].copy
+  }
+
+  type CMY = CMY.CMY
+
+  /**
+   * CMY is the primary case class for representing colors in CMY space.
+   *
+   * @constructor Create a new CMY object from three Double values.  This constructor does not validate input parameters.
+   *              For values taken from user input, sensors, or otherwise uncertain sources, consider using the factory method in the Color companion object.
+   * @see [[ai.dragonfly.color.CMY.getIfValid]] for a method of constructing CMY objects that validates inputs.
+   * @see [[https://en.wikipedia.org/wiki/CMY_color_model]] for more information about the CMY color space.
+   * @param cyan    a value ranging from [0-1].  Values outside of this range may cause errors.
+   * @param magenta a value ranging from [0-1].  Values outside of this range may cause errors.
+   * @param yellow  a value ranging from [0-1].  Values outside of this range may cause errors.
+   * @return an instance of the CMY case class.
+   * @example {{{
+   * val c = CMY(1f, 0.25f, 0.5f, 0f)
+   * c.toString()  // returns "CMY(1.000,0.250,0.500,0.000)"
+   * }}}
+   */
+
+  given VectorColorModel[CMY] with {
+    extension (cmy: CMY) {
+      //  case class CMY private(override val values: NArray[Double]) extends VectorColorModel[CMY] {
+      //    override type VEC = this.type with CMY
+
+      def cyan: Double = CMY.cyan(cmy)
+
+      def magenta: Double = CMY.magenta(cmy)
+
+      def yellow: Double = CMY.yellow(cmy)
+
+      override def toXYZ: XYZ = toRGB.toXYZ
+
+      override def toRGB: RGB = RGB.apply(
+        clamp0to1(
+          1.0 - cyan,
+          1.0 - magenta,
+          1.0 - yellow
+        )
+      )
+
+      override def similarity(that: CMY): Double = CMY.similarity(cmy, that)
+
+      override def render: String = s"CMY($cyan, $magenta, $yellow)"
+
+      override def copy: CMY = cmy.asInstanceOf[Vec[3]].copy.asInstanceOf[CMY]
+    }
+  }
+
+}

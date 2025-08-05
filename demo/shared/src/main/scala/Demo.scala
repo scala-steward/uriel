@@ -1,7 +1,7 @@
 
-import ai.dragonfly.bitfrost.*
-import ai.dragonfly.bitfrost.cie.WorkingSpace
-import ai.dragonfly.bitfrost.ColorContext.sRGB
+import ai.dragonfly.uriel.*
+import ai.dragonfly.uriel.cie.WorkingSpace
+import ai.dragonfly.uriel.ColorContext.sRGB
 import ai.dragonfly.math.Random.defaultRandom
 
 import scala.collection.mutable

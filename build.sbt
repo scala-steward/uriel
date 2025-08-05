@@ -17,12 +17,12 @@ ThisBuild / nativeConfig ~= {
    .withGC(scala.scalanative.build.GC.commix)
 }
 
-lazy val bitfrost = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+lazy val uriel = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .crossType(CrossType.Full)
   .settings(
-    name := "bitfrost",
+    name := "uriel",
     version := "0.0.03",
-    Compile / mainClass := Some("ai.dragonfly.bitfrost.verification.ConversionFidelity"),
+    Compile / mainClass := Some("ai.dragonfly.uriel.verification.ConversionFidelity"),
     libraryDependencies ++= Seq(
       "ai.dragonfly" %%% "mesh" % "0.14",
       "ai.dragonfly" %%% "spatial" % "0.1"
@@ -35,7 +35,7 @@ lazy val bitfrost = crossProject(JSPlatform, JVMPlatform, NativePlatform)
 
 lazy val demo = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .crossType(CrossType.Full)
-  .dependsOn(bitfrost)
+  .dependsOn(uriel)
   .settings(
     name := "demo",
     Compile / mainClass := Some("Demo"),
@@ -47,7 +47,7 @@ lazy val demo = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .jvmSettings()
 
 
-lazy val root = tlCrossRootProject.aggregate(bitfrost, tests).settings(name := "bitfrost")
+lazy val root = tlCrossRootProject.aggregate(uriel, tests).settings(name := "uriel")
 
 lazy val docs = project.in(file("site")).enablePlugins(TypelevelSitePlugin).settings(
   mdocVariables := Map(
@@ -61,12 +61,12 @@ lazy val unidocs = project
   .in(file("unidocs"))
   .enablePlugins(TypelevelUnidocPlugin) // also enables the ScalaUnidocPlugin
   .settings(
-    name := "bitfrost-docs",
+    name := "uriel-docs",
     ScalaUnidoc / unidoc / unidocProjectFilter :=
       inProjects(
-        bitfrost.jvm,
-        bitfrost.js,
-        bitfrost.native
+        uriel.jvm,
+        uriel.js,
+        uriel.native
       )
   )
 
@@ -77,8 +77,8 @@ lazy val tests = crossProject(
   )
   .in(file("tests"))
   .enablePlugins(NoPublishPlugin)
-  .dependsOn(bitfrost)
+  .dependsOn(uriel)
   .settings(
-    name := "bitfrost-tests",
+    name := "uriel-tests",
     libraryDependencies += "org.scalameta" %%% "munit" % "1.1.1" % Test
   )
