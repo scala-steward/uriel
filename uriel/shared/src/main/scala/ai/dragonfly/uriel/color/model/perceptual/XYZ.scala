@@ -28,19 +28,21 @@ trait XYZ { self:WorkingSpace =>
 
     opaque type XYZ = Vec[3]
 
+    override lazy val fullGamut: Gamut = Gamut.fromSpectralSamples(cmf, illuminant)
+
+    override lazy val usableGamut: Gamut = Gamut.fromRGB(transform = (xyz:XYZ) => xyz.asInstanceOf[Vec[3]])
+
     def apply(values: NArray[Double]): XYZ = dimensionCheck(values, 3).asInstanceOf[XYZ]
 
-    def apply(x: Double, y: Double, z: Double): XYZ = Vec[3](x, z, y)
-
-    override def fromXYZ(xyz: XYZ): XYZ = xyz.asInstanceOf[Vec[3]].copy
+    def apply(x: Double, y: Double, z: Double): XYZ = Vec[3](x, y, z)
 
     def x(xyz: XYZ): Double = xyz(0)
 
-    def y(xyz: XYZ): Double = xyz(2)
+    def y(xyz: XYZ): Double = xyz(1)
 
-    def z(xyz: XYZ): Double = xyz(1)
+    def z(xyz: XYZ): Double = xyz(2)
 
-    def toRGB(xyz: XYZ): RGB = {
+    override def toRGB(xyz: XYZ): RGB = {
       val temp: NArray[Double] = (M_inverse * xyz.asColumnMatrix).values
       var i: Int = 0;
       while (i < temp.length) {
@@ -50,12 +52,15 @@ trait XYZ { self:WorkingSpace =>
       RGB(temp)
     }
 
-    def copy(xyz:XYZ):XYZ = xyz.copy
+    override def toXYZ(c: XYZ): XYZ = c.copy
+    override def fromXYZ(xyz: XYZ): XYZ = xyz.asInstanceOf[Vec[3]].copy
 
+    def copy(xyz:XYZ):XYZ = xyz.copy
 
     override def fromVec(v: Vec[3]): XYZ = v
 
     override def toVec(xyz: XYZ): Vec[3] = xyz.asInstanceOf[Vec[3]].copy
+
 
   }
 

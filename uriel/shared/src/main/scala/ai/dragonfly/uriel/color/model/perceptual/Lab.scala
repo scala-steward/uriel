@@ -14,6 +14,13 @@ trait Lab { self: WorkingSpace =>
 
     opaque type Lab = Vec[3]
 
+    override lazy val fullGamut: Gamut = Gamut.fromSpectralSamples(
+      cmf,
+      (v: Vec[3]) => toVec(fromXYZ(XYZ(whitePoint.x * v.x, whitePoint.y * v.y, whitePoint.z * v.z)))
+    )
+
+    override lazy val usableGamut: Gamut = Gamut.fromRGB( 32, (xyz: XYZ) => toVec(fromXYZ(xyz)) )
+
     def apply(values: NArray[Double]): Lab = dimensionCheck(values, 3).asInstanceOf[Lab]
 
     /**
@@ -25,7 +32,38 @@ trait Lab { self: WorkingSpace =>
      */
     def apply(L: Double, a: Double, b: Double): Lab = apply(NArray[Double](a, b, L))
 
+    //    override val rgbGamut:Gamut = Gamut.fromRGB(transform = (v:XYZ) => Vector3(fromXYZ(v).values))
+    //    override def toString:String = s"${illuminant}L*a*b*"
+
     inline def f(t: Double): Double = if (t > ϵ) Math.cbrt(t) else (t * `k/116`) + `16/116`
+
+    inline def fInverse(t: Double): Double = if (t > `∛ϵ`) cubeInPlace(t) else (`116/k` * t) - `16/k`
+
+    def L(lab: Lab): Double = lab(2)
+
+    def a(lab: Lab): Double = lab(0)
+
+    def b(lab: Lab): Double = lab(1)
+
+    override def fromVec(v: Vec[3]): Lab = v
+
+    override def toVec(lab: Lab): Vec[3] = lab.asInstanceOf[Vec[3]].copy
+
+    override def toRGB(lab: Lab): RGB = lab.toXYZ.toRGB
+
+    override def toXYZ(lab: Lab): XYZ = {
+      //val white: XYZ = whitePoint //XYZ(illuminant.whitePointValues)
+      val fy: Double = `1/116` * (lab.L + 16.0)
+
+      XYZ(
+        fInverse((0.002 * lab.a) + fy) * illuminant.xₙ, // X
+        (if (lab.L > kϵ) {
+          val l = lab.L + 16.0;
+          `1/116³` * (l * l * l)
+        } else `1/k` * lab.L) * illuminant.yₙ, // Y
+        fInverse(fy - (0.005 * lab.b)) * illuminant.zₙ, // Z
+      )
+    }
 
     /**
      * Requires a reference 'white' because although black provides a lower bound for XYZ values, they have no upper bound.
@@ -44,18 +82,6 @@ trait Lab { self: WorkingSpace =>
       )
     }
 
-//    override val rgbGamut:Gamut = Gamut.fromRGB(transform = (v:XYZ) => Vector3(fromXYZ(v).values))
-//    override def toString:String = s"${illuminant}L*a*b*"
-
-    def L(lab: Lab): Double = lab(2)
-
-    def a(lab: Lab): Double = lab(0)
-
-    def b(lab: Lab): Double = lab(1)
-
-    override def fromVec(v: Vec[3]): Lab = v
-
-    override def toVec(c: Lab): Vec[3] = c.asInstanceOf[Vec[3]].copy
   }
 
 //  case class Lab private(override val values: NArray[Double]) extends PerceptualColorModel[Lab] {
@@ -74,27 +100,11 @@ trait Lab { self: WorkingSpace =>
 
       def b: Double = Lab.b(lab)
 
-      def fInverse(t: Double): Double = if (t > `∛ϵ`) cubeInPlace(t) else (`116/k` * t) - `16/k`
+      def toXYZ: XYZ = Lab.toXYZ(lab)
 
-      def toXYZ: XYZ = {
-        //val white: XYZ = whitePoint //XYZ(illuminant.whitePointValues)
-        val fy: Double = `1/116` * (L + 16.0)
+      override def similarity(that: Lab): Double = Lab.similarity(lab, that)
 
-        XYZ(
-          fInverse((0.002 * a) + fy) * illuminant.xₙ, // X
-          (if (L > kϵ) {
-            val l = L + 16.0;
-            `1/116³` * (l * l * l)
-          } else `1/k` * L) * illuminant.yₙ, // Y
-          fInverse(fy - (0.005 * b)) * illuminant.zₙ, // Z
-        )
-      }
-
-      override def similarity(that: Lab): Double = {
-        Lab.similarity(lab, that)
-      }
-
-      override def toRGB: RGB = toXYZ.toRGB
+      override def toRGB: RGB = Lab.toRGB(lab)
 
       override def render: String = s"L*a*b*($L,$a,$b)"
     }

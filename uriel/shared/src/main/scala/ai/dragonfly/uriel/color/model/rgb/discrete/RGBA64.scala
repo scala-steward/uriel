@@ -108,9 +108,13 @@ trait RGBA64 extends DiscreteRGB { self: WorkingSpace =>
      * However, it samples from a perceptually uniform color space and avoids the bias toward cool colors.
      * This method samples the Red, Green, and Blue color components uniformly, but always returns 65535 for the alpha component.
      *
-     * @return a randomly generated color sampled from the RGB Color Space.
+     * @return a randomly generated color sampled from the RGB Color ColorSpace.
      */
     override def random(r: scala.util.Random = Random.defaultRandom): RGBA64 = RGBA64((r.nextLong(0xFFFFFFFFFFFFL)<< 16) | 0xFFFFL)
+
+    override def toRGB(c: RGBA64): RGB = c.toRGB
+
+    override def toXYZ(c: RGBA64): XYZ = c.toXYZ
   }
 
   type RGBA64 = RGBA64.RGBA64

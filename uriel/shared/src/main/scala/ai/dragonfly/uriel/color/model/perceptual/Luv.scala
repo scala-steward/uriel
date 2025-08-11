@@ -39,6 +39,13 @@ trait Luv { self: WorkingSpace =>
 
     opaque type Luv = Vec[3]
 
+    override lazy val fullGamut: Gamut = Gamut.fromSpectralSamples(
+      cmf,
+      (v: Vec[3]) => toVec(fromXYZ(XYZ(whitePoint.x * v.x, whitePoint.y * v.y, whitePoint.z * v.z)))
+    )
+
+    override lazy val usableGamut: Gamut = Gamut.fromRGB(32, (xyz: XYZ) => toVec(fromXYZ(xyz)))
+    
     def apply(values: NArray[Double]): Luv = dimensionCheck(values, 3).asInstanceOf[Luv]
 
     /**
@@ -57,6 +64,10 @@ trait Luv { self: WorkingSpace =>
     val UV(uₙ: Double, vₙ: Double) = UV.fromXYZ(XYZ(illuminant.whitePointValues))
 
     def fL(t: Double): Double = if (t > ϵ) 116.0 * Math.cbrt(t) - 16.0 else k * t
+
+    override def toRGB(c: Luv): RGB = c.toRGB
+
+    override def toXYZ(c: Luv): XYZ = c.toXYZ
 
     def fromXYZ(xyz: XYZ): Luv = {
 
@@ -89,6 +100,7 @@ trait Luv { self: WorkingSpace =>
     override def fromVec(v: Vec[3]): Luv = v
 
     override def toVec(luv: Luv): Vec[3] = luv.asInstanceOf[Vec[3]].copy
+
   }
 
   /**

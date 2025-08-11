@@ -70,11 +70,11 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
   trait PerceptualColorModel[C] extends VectorColorModel[C]
 
   /**
-   * Space traits for companion objects of Color Models.
+   * ColorSpace traits for companion objects of Color Models.
    */
 
-  trait Space[C: ColorModel](using ctx:WorkingSpace) extends Sampleable[C] {
-
+  trait ColorSpace[C: ColorModel](using ctx:WorkingSpace) extends Sampleable[C] {
+    
     /**
      * Computes a weighted average of two colors in C color space.
      * @param c1 the first color.
@@ -91,16 +91,23 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
     def euclideanDistanceTo(c1: C, c2: C):Double = Math.sqrt(euclideanDistanceSquaredTo(c1, c2))
     def similarity(c1: C, c2: C): Double = 1.0 - Math.sqrt(euclideanDistanceSquaredTo(c1, c2) / maxDistanceSquared)
 
+    def toRGB(c:C):RGB
     def fromRGB(rgb:RGB):C
+
+    def toXYZ(c:C):XYZ
     def fromXYZ(xyz:XYZ):C
 
   }
 
-  trait DiscreteSpace[C: DiscreteColorModel] extends Space[C] {
+  trait DiscreteSpace[C: DiscreteColorModel] extends ColorSpace[C] {
 
   }
 
-  trait VectorSpace[C: VectorColorModel] extends Space[C] {
+  trait VectorSpace[C: VectorColorModel] extends ColorSpace[C] {
+
+    //lazy val usableGamut:Gamut = Gamut.fromRGB(transform = (xyz:XYZ) => fromXYZ(xyz).asInstanceOf[Vec[3]])
+
+    def usableGamut:Gamut
 
     /**
      * Computes a weighted average of two colors in C color space.
@@ -130,14 +137,11 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
 
     override def fromRGB(rgb: RGB): C = fromXYZ(rgb.toXYZ)
 
-    lazy val gamut:Gamut = Gamut.fromRGB(transform = (xyz:XYZ) => fromXYZ(xyz).asInstanceOf[Vec[3]])
+    def fullGamut:Gamut
 
-    override lazy val maxDistanceSquared:Double = gamut.maxDistSquared
+    override lazy val maxDistanceSquared:Double = usableGamut.maxDistSquared
 
-    override def random(r: Random = slash.Random.defaultRandom): C = {
-      val v = gamut.random(r)
-      apply(v.asNativeArray)
-    }
+    override def random(r: Random = slash.Random.defaultRandom): C = fromVec(usableGamut.random(r))
 
     override def euclideanDistanceSquaredTo(c1: C, c2: C): Double = c1.asInstanceOf[Vec[3]].euclideanDistanceSquaredTo(c1.asInstanceOf[Vec[3]])
   }

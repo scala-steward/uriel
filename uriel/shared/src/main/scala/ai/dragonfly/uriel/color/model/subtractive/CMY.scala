@@ -43,15 +43,7 @@ trait CMY { self: WorkingSpace =>
       )
     )
 
-    override def fromXYZ(xyz: XYZ): CMY = fromRGB(xyz.toRGB)
 
-    def fromRGB(rgb: RGB): CMY = apply(
-      clamp0to1(
-      1.0 - rgb.red,
-      1.0 - rgb.green,
-      1.0 - rgb.blue
-      )
-    )
 
     def cyan(cmy: CMY): Double = cmy(0)
 
@@ -64,6 +56,28 @@ trait CMY { self: WorkingSpace =>
     override def fromVec(v: Vec[3]): CMY = v.copy
 
     override def toVec(c: CMY): Vec[3] = c.asInstanceOf[Vec[3]].copy
+
+    override def toRGB(cmy: CMY): RGB = RGB.apply(
+      clamp0to1(
+        1.0 - cmy.cyan,
+        1.0 - cmy.magenta,
+        1.0 - cmy.yellow
+      )
+    )
+
+    def fromRGB(rgb: RGB): CMY = apply(
+      clamp0to1(
+        1.0 - rgb.red,
+        1.0 - rgb.green,
+        1.0 - rgb.blue
+      )
+    )
+
+    override def toXYZ(c: CMY): XYZ = c.toXYZ
+
+    override def fromXYZ(xyz: XYZ): CMY = fromRGB(xyz.toRGB)
+
+    override lazy val usableGamut: Gamut = new Gamut( Cube(1.0, 32) )
   }
 
   type CMY = CMY.CMY
@@ -98,13 +112,7 @@ trait CMY { self: WorkingSpace =>
 
       override def toXYZ: XYZ = toRGB.toXYZ
 
-      override def toRGB: RGB = RGB.apply(
-        clamp0to1(
-          1.0 - cyan,
-          1.0 - magenta,
-          1.0 - yellow
-        )
-      )
+      override def toRGB: RGB = CMY.toRGB(cmy)
 
       override def similarity(that: CMY): Double = CMY.similarity(cmy, that)
 

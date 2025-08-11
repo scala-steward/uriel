@@ -60,29 +60,27 @@ trait Gamut { self: WorkingSpace =>
 
       val m1: Mesh = Cube(1.0, n)
 
-      val m2: Mesh = Mesh(
-        NArray.tabulate[Vec[3]](m1.points.length)((i:Int) => {m1.points(i) * 255.0}),
-        m1.triangles
-      )
+//      val m2: Mesh = Mesh(
+//        NArray.tabulate[Vec[3]](m1.points.length)((i:Int) => m1.points(i) ), //* 255.0}),
+//        m1.triangles
+//      )
 
       val m3: Mesh = Mesh(
-        m1.points.map((vRGB:Vec[3]) => transform(RGB(vRGB.asInstanceOf[NArray[Double]]).toXYZ)),
+        m1.points.map((vRGB:Vec[3]) => transform(RGB.fromVec(vRGB).toXYZ)),
         m1.triangles
       )
 
-      val sg:Gaussian = Gaussian()
+//      val sg:Gaussian = Gaussian()
+//
+//      var i:Int = 0; while (i < m1.triangles.length) {
+//        val t:Triangle = m1.triangles(i)
+//        sg.observe( Math.sqrt( t.area(m3.points) / t.area(m2.points) ) )
+//        i += 1
+//      }
+//
+//      println(s"$ctx triangle stretch stats: ${sg.estimate}")
 
-      var i:Int = 0; while (i < m1.triangles.length) {
-        val t:Triangle = m1.triangles(i)
-        sg.observe( Math.sqrt( t.area(m3.points) / t.area(m2.points) ) )
-        i += 1
-      }
-
-      println(s"$ctx triangle stretch stats: ${sg.estimate}")
-
-      new Gamut(
-        m3
-      )
+      new Gamut( m3 )
     }
 
     def fromSpectralSamples(spectralSamples: SampleSet, illuminant: Illuminant): Gamut = fromSpectralSamples(

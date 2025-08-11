@@ -82,6 +82,9 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
         r.nextDouble()
       )
     )
+    override def toRGB(c: HSV): RGB = c.toRGB
+
+    override def toXYZ(c: HSV): XYZ = c.toXYZ
 
     override def toVec(hsv: HSV): Vec[3] = Vec[3](
       hsv(1) * Math.cos(slash.degreesToRadians(hsv(0))),
@@ -94,6 +97,9 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
     def saturation(hsv: HSV): Double = hsv(1)
 
     def value(hsv: HSV): Double = hsv(2)
+
+    override lazy val usableGamut: Gamut = new Gamut(Cylinder(capSegments = 6))
+
   }
 
   type HSV = HSV.HSV

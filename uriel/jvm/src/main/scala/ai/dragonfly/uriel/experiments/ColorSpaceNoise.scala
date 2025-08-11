@@ -30,12 +30,12 @@ object ColorSpaceNoise extends App {
 
     val GMG: GamutMeshGenerator = GamutMeshGenerator(context)
 
-    def noisyImage[C:ColorModel](space:Space[C], transform: Vec[3] => ColorContext.sRGB.ARGB32):Unit = {
+    def noisyImage[C:ColorModel](space:ColorSpace[C]):Unit = {
 
       for (y <- 0 until h) {
         for (x <- 0 until w) {
           val c = space.random()
-          bi.setRGB(x, y, transform(c.toXYZ.asInstanceOf[Vec[3]]))
+          bi.setRGB(x, y, GMG.XYZtoARGB32(c.toXYZ.asInstanceOf[Vec[3]]))
         }
       }
 
@@ -43,6 +43,15 @@ object ColorSpaceNoise extends App {
       if (ImageIO.write(bi, "PNG", new File(fileName))) println(s"\t\tWrote $fileName")
       else println(s"\t\tFailed to write $fileName")
     }
+
+    noisyImage(RGB)
+    noisyImage(CMY)
+    noisyImage(HSV)
+    noisyImage(HSL)
+    noisyImage(XYZ)
+    noisyImage(Lab)
+    noisyImage(Luv)
+
 
 //    for (space <- Seq(XYZ, RGB, CMY, CMYK, Lab, Luv, HSV, HSL)) { // ARGB32, RGBA32, ARGB64, RGBA64)) { //
 //      space match {
@@ -63,14 +72,6 @@ object ColorSpaceNoise extends App {
 //        (cv:Vec[3]) => sRGB.ARGB32(ug.vertexColorMapper(cv))
 //      )
 //    }
-
-    noisyImage(RGB, GMG.XYZtoARGB32)
-    noisyImage(CMY, GMG.XYZtoARGB32)
-    noisyImage(HSV, GMG.XYZtoARGB32)
-    noisyImage(HSL, GMG.XYZtoARGB32)
-    noisyImage(XYZ, GMG.XYZtoARGB32)
-    noisyImage(Lab, GMG.XYZtoARGB32)
-    noisyImage(Luv, GMG.XYZtoARGB32)
 
   }
 

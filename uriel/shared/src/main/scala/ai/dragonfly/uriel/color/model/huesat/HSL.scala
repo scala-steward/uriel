@@ -94,6 +94,13 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
 
     def lightness(hsl: HSL): Double = hsl(2)
 
+    override def toRGB(c: HSL): RGB = c.toRGB
+
+    override def toXYZ(c: HSL): XYZ = c.toXYZ
+
+    override lazy val usableGamut: Gamut = {
+      new Gamut( Cylinder(sideSegments = 64) )
+    }
   }
 
   type HSL = HSL.HSL

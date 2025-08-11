@@ -95,10 +95,6 @@ trait ARGB32 extends DiscreteRGB { self: WorkingSpace =>
 
     override inline def clamp(red: Double, green: Double, blue: Double): Int = clamp(MAX, red, green, blue)
 
-    override def fromXYZ(xyz: XYZ): ARGB32 = fromRGB(xyz.toRGB)
-
-    override def fromRGB(rgb: RGB): ARGB32 = apply(clamp(rgb.red * MAX, rgb.green * MAX, rgb.blue * MAX))
-
     override def weightedAverage(c1: ARGB32, w1: Double, c2: ARGB32, w2: Double): ARGB32 = ARGB32(
       ((c1.alpha * w1) + (c2.alpha * w2)).toInt,
       ((c1.red * w1) + (c2.red * w2)).toInt,
@@ -124,9 +120,18 @@ trait ARGB32 extends DiscreteRGB { self: WorkingSpace =>
      * However, it samples from a perceptually uniform color space and avoids the bias toward cool colors.
      * This method samples the Red, Green, and Blue color components uniformly, but always returns 255 for the alpha component.
      *
-     * @return a randomly generated color sampled from the RGB Color Space.
+     * @return a randomly generated color sampled from the RGB Color ColorSpace.
      */
     override def random(r: scala.util.Random = Random.defaultRandom): ARGB32 = 0xFF000000 | r.nextInt(0xFFFFFF)
+
+    override def fromRGB(rgb: RGB): ARGB32 = apply(clamp(rgb.red * MAX, rgb.green * MAX, rgb.blue * MAX))
+    override def toRGB(argb: ARGB32): RGB = {
+      import ARGB32.MAXD
+      RGB(argb.red.toDouble / MAXD, argb.green.toDouble / MAXD, argb.blue.toDouble / MAXD)
+    }
+
+    override def fromXYZ(xyz: XYZ): ARGB32 = fromRGB(xyz.toRGB)
+    override def toXYZ(c: ARGB32): XYZ = c.toXYZ
   }
 
   type ARGB32 = ARGB32.ARGB32
@@ -170,10 +175,7 @@ trait ARGB32 extends DiscreteRGB { self: WorkingSpace =>
        */
       override inline def blue: Int = argb & 0xff
 
-      override def toRGB: RGB = {
-        import ARGB32.MAXD
-        RGB(red.toDouble / MAXD, green.toDouble / MAXD, blue.toDouble / MAXD)
-      }
+      override def toRGB: RGB = ARGB32.toRGB(argb)
 
       override def similarity(that: ARGB32): Double = ARGB32.similarity(argb, that)
 

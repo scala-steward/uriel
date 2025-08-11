@@ -63,8 +63,8 @@ trait CMYK { self: WorkingSpace =>
       r.nextDouble()
     )
 
-    override def fromXYZ(xyz: XYZ): CMYK = fromRGB(xyz.toRGB)
 
+    override def toRGB(c: CMYK): RGB = c.toRGB
     def fromRGB(rgb: RGB): CMYK = {
       // http://color.lukas-stratmann.com/color-systems/cmy.html
       val k:Double = 1.0 - Math.max(rgb.red, Math.max(rgb.green, rgb.blue))
@@ -78,6 +78,9 @@ trait CMYK { self: WorkingSpace =>
       )
     }
 
+    override def fromXYZ(xyz: XYZ): CMYK = fromRGB(xyz.toRGB)
+    override def toXYZ(c: CMYK): XYZ = c.toXYZ
+    
     def cyan(cmyk: CMYK): Double = cmyk(0)
 
     def magenta(cmyk: CMYK): Double = cmyk(1)
@@ -97,6 +100,9 @@ trait CMYK { self: WorkingSpace =>
     override def euclideanDistanceSquaredTo(cmyk1: CMYK, cmyk2: CMYK): Double = cmyk1.euclideanDistanceSquaredTo(cmyk2)
 
     override def fromVec(v: Vec[3]): CMYK = apply(v.x, v.y, v.z)
+
+    override lazy val usableGamut: Gamut = new Gamut(Cube(1.0, 32))
+
   }
 
   /**
@@ -126,13 +132,13 @@ trait CMYK { self: WorkingSpace =>
 
       def cyan: Double = CMYK.cyan(cmyk)
 
-      def magenta: Double = CMYK.cyan(cmyk)
+      def magenta: Double = CMYK.magenta(cmyk)
 
-      def yellow: Double = CMYK.cyan(cmyk)
+      def yellow: Double = CMYK.yellow(cmyk)
 
-      def key: Double = CMYK.cyan(cmyk)
+      def key: Double = CMYK.key(cmyk)
 
-      def black: Double = CMYK.cyan(cmyk)
+      def black: Double = CMYK.black(cmyk)
 
       override def toXYZ: XYZ = toRGB.toXYZ
 

@@ -89,9 +89,12 @@ trait ARGB64 extends DiscreteRGB { self: WorkingSpace =>
 
     inline def clamp(red: Double, green: Double, blue: Double): Long = clamp(MAX, red, green, blue)
 
-    override def fromXYZ(xyz: XYZ): ARGB64 = fromRGB(xyz.toRGB)
 
+    override def toRGB(c: ARGB64): RGB = c.toRGB
     override def fromRGB(rgb: RGB): ARGB64 = clamp(rgb.red * MAX, rgb.green * MAX, rgb.blue * MAX)
+
+    override def toXYZ(c: ARGB64): XYZ = c.toXYZ
+    override def fromXYZ(xyz: XYZ): ARGB64 = fromRGB(xyz.toRGB)
 
     override def weightedAverage(c1: ARGB64, w1: Double, c2: ARGB64, w2: Double): ARGB64 = ARGB64(
       ((c1.alpha * w1) + (c2.alpha * w2)).toInt,
@@ -107,7 +110,7 @@ trait ARGB64 extends DiscreteRGB { self: WorkingSpace =>
      * However, it samples from a perceptually uniform color space and avoids the bias toward cool colors.
      * This method samples the Red, Green, and Blue color components uniformly, but always returns 65535 for the alpha component.
      *
-     * @return a randomly generated color sampled from the RGB Color Space.
+     * @return a randomly generated color sampled from the RGB Color ColorSpace.
      */
     override def random(r: scala.util.Random = Random.defaultRandom): ARGB64 = 0xFFFF000000000000L | r.nextLong(0xFFFFFFFFFFFFL)
   }

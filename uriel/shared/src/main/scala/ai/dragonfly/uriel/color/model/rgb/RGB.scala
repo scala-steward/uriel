@@ -20,6 +20,8 @@ trait RGB { self: WorkingSpace =>
 
     opaque type RGB = Vec[3]
 
+    override lazy val usableGamut: Gamut = new Gamut( Cube(1.0, 32) )
+
     override val maxDistanceSquared: Double = 9.0
 
     def apply(values: NArray[Double]): RGB = dimensionCheck(values, 3).asInstanceOf[RGB]
@@ -42,8 +44,6 @@ trait RGB { self: WorkingSpace =>
 //    def apply(argb: ARGB32): RGB = apply(`1/255` * argb.red, `1/255` * argb.green, `1/255` * argb.blue)
 //
 //    def apply(rgba: RGBA32): RGB = apply(`1/255` * rgba.red, `1/255` * rgba.green, `1/255` * rgba.blue)
-
-    override def fromXYZ(xyz:XYZ):RGB = xyz.toRGB
 
     //override def fromRGB(rgb: RGB): RGB = apply(rgb.red, rgb.green, rgb.blue)
 
@@ -73,7 +73,7 @@ trait RGB { self: WorkingSpace =>
      * However, it samples from a perceptually uniform color space and avoids the bias toward cool colors.
      * This method samples the Red, Green, and Blue color components uniformly, but always returns 1.0 for the alpha component.
      *
-     * @return a randomly generated color sampled from the RGB Color Space.
+     * @return a randomly generated color sampled from the RGB Color ColorSpace.
      */
     override def random(r: scala.util.Random = Random.defaultRandom): RGB = Vec[3](r.nextDouble(), r.nextDouble(), r.nextDouble())
 
@@ -83,11 +83,21 @@ trait RGB { self: WorkingSpace =>
 
     override def euclideanDistanceSquaredTo(c1: RGB, c2: RGB): Double = c1.euclideanDistanceSquaredTo(c2)
 
-    override def fromRGB(rgb: RGB): RGB = rgb.copy
-
     override def fromVec(v: Vec[3]): RGB = v
 
     override def toVec(rgb: RGB): Vec[3] = rgb.asInstanceOf[Vec[3]].copy
+
+    override def toRGB(rgb: RGB): RGB = rgb.copy
+    override def fromRGB(rgb: RGB): RGB = rgb.copy
+
+    override def toXYZ(rgb: RGB): XYZ = {
+      (M * Mat[3, 1](
+        transferFunction.decode(rgb.red),
+        transferFunction.decode(rgb.green),
+        transferFunction.decode(rgb.blue)
+      )).values.asInstanceOf[XYZ]
+    }
+    override def fromXYZ(xyz:XYZ):RGB = xyz.toRGB
 
   }
 
@@ -108,13 +118,7 @@ trait RGB { self: WorkingSpace =>
 
       def copy: RGB = RGB(red, green, blue)
 
-      override def toXYZ: XYZ = {
-        (M * Mat[3, 1](
-          transferFunction.decode(red),
-          transferFunction.decode(green),
-          transferFunction.decode(blue)
-        )).values.asInstanceOf[XYZ]
-      }
+      override def toXYZ: XYZ = RGB.toXYZ(rgb)
 
       override def similarity(that: RGB): Double = RGB.similarity(rgb, that)
 

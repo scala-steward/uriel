@@ -39,16 +39,16 @@ class GamutMeshGenerator(val ws:WorkingSpace) {
     case _:ws.XYZ.type => ColorGamutVolumeMesh( fullGamutXYZ.volumeMesh, XYZtoARGB32 )
     case wsSpace:ws.PerceptualSpace[C] => ColorGamutVolumeMesh(
         fullGamutXYZ.volumeMesh.transform(
-          (v: Vec[3]) => wsSpace.toVec(wsSpace.fromXYZ(ws.XYZ(v.asNativeArray)))
+          (v: Vec[3]) => wsSpace.toVec(wsSpace.fromXYZ(ws.XYZ.fromVec(v)))
         ),
         (v:Vec[3]) => XYZtoARGB32(space.fromVec(v).toXYZ.asInstanceOf[Vec[3]])
       )
-    case _ => throw Exception("Wrong Working Space!")
+    case _ => throw Exception("Wrong Working ColorSpace!")
   }
 
   def usableGamut[C:ColorModel](space:WorkingSpace#VectorSpace[C]):ColorGamutVolumeMesh = ColorGamutVolumeMesh(
     space match {
-      case perceptualSpace: ws.PerceptualSpace[C] => perceptualSpace.gamut.volumeMesh
+      case perceptualSpace: ws.PerceptualSpace[C] => perceptualSpace.usableGamut.volumeMesh
       case _: ws.CylindricalSpace[C] =>
         try {
           if (space == ws.asInstanceOf[HSL].HSL) Cylinder(sideSegments = 64)

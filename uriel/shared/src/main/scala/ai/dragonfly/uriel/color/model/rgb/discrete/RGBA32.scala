@@ -118,7 +118,7 @@ trait RGBA32 extends DiscreteRGB { self: WorkingSpace =>
      * However, it samples from a perceptually uniform color space and avoids the bias toward cool colors.
      * This method samples the Red, Green, and Blue color components uniformly, but always returns 255 for the alpha component.
      *
-     * @return a randomly generated color sampled from the RGB Color Space.
+     * @return a randomly generated color sampled from the RGB Color ColorSpace.
      */
     override def random(r: scala.util.Random = Random.defaultRandom): RGBA32 = (r.nextInt(0xFFFFFF) << 8 ) | 0xFF
 
@@ -161,6 +161,9 @@ trait RGBA32 extends DiscreteRGB { self: WorkingSpace =>
      */
     inline def html(rgba:RGBA32): String = "#" + Integer.toHexString(rgba | 0xff000000).substring(2)
 
+    override def toRGB(c: RGBA32): RGB = c.toRGB
+
+    override def toXYZ(c: RGBA32): XYZ = c.toXYZ
   }
 
   type RGBA32 = RGBA32.RGBA32
