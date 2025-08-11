@@ -1,8 +1,6 @@
 package ai.dragonfly.uriel.cie
 
-import slash.vector.*
 import ai.dragonfly.uriel.cie.Constant.*
-
 
 /**
  * The TransferFunction handles companding.

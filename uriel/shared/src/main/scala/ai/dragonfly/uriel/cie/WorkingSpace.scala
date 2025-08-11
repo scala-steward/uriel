@@ -4,19 +4,13 @@ import narr.*
 import slash.*
 import vector.*
 import matrix.*
-import matrix.util.*
-import slash.matrix.ml.data.*
+
 import ai.dragonfly.uriel.color.model.*
 import ai.dragonfly.uriel.color.model.perceptual.XYZ
-import ai.dragonfly.uriel.color.model.rgb.discrete.{ARGB32, RGBA32}
 import ai.dragonfly.uriel.color.model.rgb.RGB
 import ai.dragonfly.uriel.color.spectral.*
 import slash.stats.probability.distributions.Sampleable
-import slash.stats.probability.distributions.stream.StreamingVectorStats
-import ai.dragonfly.mesh.*
-import ai.dragonfly.mesh.shape.*
 
-import java.io.PrintWriter
 import scala.collection.{immutable, mutable}
 import scala.util.Random
 
@@ -73,7 +67,7 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
    * ColorSpace traits for companion objects of Color Models.
    */
 
-  trait ColorSpace[C: ColorModel](using ctx:WorkingSpace) extends Sampleable[C] {
+  trait ColorSpace[C: ColorModel] extends Sampleable[C] {
     
     /**
      * Computes a weighted average of two colors in C color space.

@@ -1,6 +1,6 @@
 package ai.dragonfly.uriel.cie
 
-import slash.vector.*
+
 
 object Constant {
 

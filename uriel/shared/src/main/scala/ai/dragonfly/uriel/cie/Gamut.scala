@@ -2,19 +2,17 @@ package ai.dragonfly.uriel.cie
 
 import narr.*
 import ai.dragonfly.uriel.color.spectral.SampleSet
-import ai.dragonfly.uriel.visualization.*
+
 import slash.matrix.ml.unsupervised.dimreduction.PCA
 import slash.matrix.ml.data.*
-import slash.squareInPlace
+
 import slash.stats.probability.distributions.Sampleable
-import slash.stats.probability.distributions.stream.{Gaussian, StreamingVectorStats}
+import slash.stats.probability.distributions.stream.StreamingVectorStats
 import slash.vector.*
 import ai.dragonfly.mesh.*
 import ai.dragonfly.mesh.shape.*
 import slash.geometry.Tetrahedron
 
-import java.io.PrintWriter
-import scala.collection.immutable
 import scala.collection.mutable
 
 trait Gamut { self: WorkingSpace =>

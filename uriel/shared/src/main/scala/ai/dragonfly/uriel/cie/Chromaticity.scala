@@ -2,7 +2,6 @@ package ai.dragonfly.uriel.cie
 
 import narr.*
 import slash.matrix.*
-import slash.vector.*
 
 object ChromaticityPrimary {
   def inferThird(cp1: ChromaticityPrimary, cp2: ChromaticityPrimary): ChromaticityPrimary = ChromaticityPrimary(

@@ -2,10 +2,10 @@ package ai.dragonfly.uriel.cie
 
 import narr.*
 import slash.vector.*
-import util.*
+
 import slash.matrix
 import matrix.*
-import slash.matrix.ml.data.*
+
 
 import scala.language.implicitConversions
 

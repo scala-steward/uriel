@@ -15,6 +15,8 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
 
     opaque type HSV = Vec[3]
 
+    override lazy val usableGamut: Gamut = new Gamut(Cylinder(capSegments = 6))
+
     def apply(values: NArray[Double]): HSV = dimensionCheck(values, 3).asInstanceOf[HSV]
 
     def clamp(values: NArray[Double]): HSV = {
@@ -97,8 +99,6 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
     def saturation(hsv: HSV): Double = hsv(1)
 
     def value(hsv: HSV): Double = hsv(2)
-
-    override lazy val usableGamut: Gamut = new Gamut(Cylinder(capSegments = 6))
 
   }
 

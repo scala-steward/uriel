@@ -7,10 +7,8 @@ import ai.dragonfly.uriel.color.model.huesat.{HSL, HSV}
 import ai.dragonfly.uriel.color.model.perceptual.{Lab, Luv}
 import ai.dragonfly.uriel.color.model.subtractive.{CMY, CMYK}
 import ai.dragonfly.uriel.color.spectral.*
-import slash.vector.*
+
 import slash.matrix.*
-import slash.squareInPlace
-import slash.stats.probability.distributions.Sampleable
 
 package object uriel {
 

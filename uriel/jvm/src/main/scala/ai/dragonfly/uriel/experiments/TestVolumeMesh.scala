@@ -12,10 +12,10 @@ import scala.language.implicitConversions
 
 object TestVolumeMesh extends App {
 
-  import ai.dragonfly.mesh.Mesh.*
+  
   import ai.dragonfly.uriel.ColorContext.sRGB.*
-  import ai.dragonfly.uriel.ColorContext.sRGB.RGB.*
-  import ai.dragonfly.uriel.ColorContext.sRGB.ARGB32.*
+  
+  
 
   val sRGB_RGB_TestCube: ColorGamutVolumeMesh = ColorGamutVolumeMesh(
     Cube(),

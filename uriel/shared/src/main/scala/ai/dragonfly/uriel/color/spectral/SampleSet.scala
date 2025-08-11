@@ -1,6 +1,6 @@
 package ai.dragonfly.uriel.color.spectral
 
-import slash.squareInPlace
+
 import slash.vector.*
 import narr.*
 

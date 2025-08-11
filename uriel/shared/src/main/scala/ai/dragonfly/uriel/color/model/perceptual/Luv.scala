@@ -1,11 +1,11 @@
 package ai.dragonfly.uriel.color.model.perceptual
 
 import narr.*
-import ai.dragonfly.uriel.ColorContext
+
 import ai.dragonfly.uriel.cie.*
 import ai.dragonfly.uriel.cie.Constant.*
 import slash.vector.{Vec, *}
-import slash.{Random, cubeInPlace}
+import slash.cubeInPlace
 
 trait Luv { self: WorkingSpace =>
 

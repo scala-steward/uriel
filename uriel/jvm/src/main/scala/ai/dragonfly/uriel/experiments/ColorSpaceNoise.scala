@@ -1,16 +1,16 @@
 package ai.dragonfly.uriel.experiments
 
 import ai.dragonfly.uriel.ColorContext
-import ai.dragonfly.uriel.cie.*
-import ai.dragonfly.uriel.color.model.*
-import ai.dragonfly.uriel.color.spectral.*
+
+
+
 import ai.dragonfly.uriel.visualization.*
-import ai.dragonfly.mesh.sRGB
-import ai.dragonfly.mesh.io.PLY
+
+
 import slash.vector.*
 
 import java.awt.image.BufferedImage
-import java.io.{File, FileOutputStream}
+import java.io.File
 import javax.imageio.ImageIO
 import scala.language.implicitConversions
 

@@ -1,15 +1,13 @@
 package ai.dragonfly.uriel.color.model.perceptual
 
 import narr.*
-import ai.dragonfly.uriel.ColorContext
 import ai.dragonfly.uriel.cie.*
 import ai.dragonfly.uriel.cie.Constant.*
 import slash.vector.*
-import slash.{Random, cubeInPlace}
+import slash.cubeInPlace
 
 trait Lab { self: WorkingSpace =>
 
-  // use opaque types just like Vec[3] ?
   object Lab extends PerceptualSpace[Lab] {
 
     opaque type Lab = Vec[3]

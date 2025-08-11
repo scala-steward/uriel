@@ -3,16 +3,12 @@ package ai.dragonfly.uriel.visualization
 import ai.dragonfly.uriel.ColorContext
 import ai.dragonfly.uriel.ColorContext.sRGB.ColorModel
 import ai.dragonfly.uriel.cie.{ChromaticAdaptation, WorkingSpace}
-import ai.dragonfly.uriel.color.model.rgb.RGB
+
 import ai.dragonfly.uriel.color.model.huesat.*
-import ai.dragonfly.uriel.color.model.subtractive.*
-import ai.dragonfly.uriel.color.model.perceptual.*
+
 import slash.vector.*
 import ai.dragonfly.mesh.*
 import ai.dragonfly.mesh.shape.*
-
-import java.io.File
-import java.io.OutputStream
 
 class GamutMeshGenerator(val ws:WorkingSpace) {
 

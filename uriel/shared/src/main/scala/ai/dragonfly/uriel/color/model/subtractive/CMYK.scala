@@ -14,6 +14,8 @@ trait CMYK { self: WorkingSpace =>
 
     opaque type CMYK = Vec[4]
 
+    override lazy val usableGamut: Gamut = new Gamut(Cube(1.0, 32))
+
     override val maxDistanceSquared: Double = 4.0
 
     def apply(values: NArray[Double]): CMYK = {
@@ -100,8 +102,6 @@ trait CMYK { self: WorkingSpace =>
     override def euclideanDistanceSquaredTo(cmyk1: CMYK, cmyk2: CMYK): Double = cmyk1.euclideanDistanceSquaredTo(cmyk2)
 
     override def fromVec(v: Vec[3]): CMYK = apply(v.x, v.y, v.z)
-
-    override lazy val usableGamut: Gamut = new Gamut(Cube(1.0, 32))
 
   }
 

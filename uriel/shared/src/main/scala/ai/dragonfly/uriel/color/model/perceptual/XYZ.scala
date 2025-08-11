@@ -2,9 +2,7 @@ package ai.dragonfly.uriel.color.model.perceptual
 
 import narr.*
 import ai.dragonfly.uriel.cie.WorkingSpace
-import ai.dragonfly.uriel.color.spectral.DEFAULT
-import ai.dragonfly.mesh.*
-import ai.dragonfly.mesh.shape.*
+
 import slash.vector.*
 import slash.matrix.*
 

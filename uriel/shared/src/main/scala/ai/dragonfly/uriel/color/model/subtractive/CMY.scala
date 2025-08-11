@@ -14,6 +14,8 @@ trait CMY { self: WorkingSpace =>
 
     opaque type CMY = Vec[3]
 
+    override lazy val usableGamut: Gamut = new Gamut(Cube(1.0, 32))
+
     override val maxDistanceSquared: Double = 4.0
 
     def apply(values: NArray[Double]): CMY = dimensionCheck(values, 3).asInstanceOf[CMY]
@@ -77,7 +79,6 @@ trait CMY { self: WorkingSpace =>
 
     override def fromXYZ(xyz: XYZ): CMY = fromRGB(xyz.toRGB)
 
-    override lazy val usableGamut: Gamut = new Gamut( Cube(1.0, 32) )
   }
 
   type CMY = CMY.CMY
