@@ -6,7 +6,6 @@ import slash.vector.*
 import slash.matrix
 import matrix.*
 
-
 import scala.language.implicitConversions
 
 object ChromaticAdaptation {

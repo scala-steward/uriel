@@ -2,21 +2,30 @@ package ai.dragonfly.uriel.cie
 
 import narr.*
 import ai.dragonfly.uriel.color.spectral.SampleSet
-
 import slash.matrix.ml.unsupervised.dimreduction.PCA
 import slash.matrix.ml.data.*
-
 import slash.stats.probability.distributions.Sampleable
 import slash.stats.probability.distributions.stream.StreamingVectorStats
 import slash.vector.*
 import ai.dragonfly.mesh.*
 import ai.dragonfly.mesh.shape.*
+import ai.dragonfly.uriel.ColorContext
 import slash.geometry.Tetrahedron
 
 import scala.collection.mutable
 
 trait Gamut { self: WorkingSpace =>
   object Gamut {
+
+    val XYZtoARGB32: Vec[3] => ColorContext.sRGB.ARGB32 = {
+      import ColorContext.sRGB
+      if (self == sRGB.ARGB32) {
+        (v: Vec[3]) => sRGB.ARGB32.fromXYZ(sRGB.XYZ(v.asNativeArray))
+      } else {
+        val chromaticAdapter: ChromaticAdaptation[self.type, sRGB.type] = ChromaticAdaptation[self.type, sRGB.type](self, sRGB)
+        (v: Vec[3]) => sRGB.ARGB32.fromXYZ(chromaticAdapter(self.XYZ(v.asNativeArray)))
+      }
+    }
 
     def computeMaxDistSquared(points: NArray[Vec[3]], mean: Vec[3]): Double = {
 
