@@ -68,7 +68,7 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
    */
 
   trait ColorSpace[C: ColorModel] extends Sampleable[C] {
-    
+
     /**
      * Computes a weighted average of two colors in C color space.
      * @param c1 the first color.
@@ -99,8 +99,6 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
 
   trait VectorSpace[C: VectorColorModel] extends ColorSpace[C] {
 
-    //lazy val usableGamut:Gamut = Gamut.fromRGB(transform = (xyz:XYZ) => fromXYZ(xyz).asInstanceOf[Vec[3]])
-
     def usableGamut:Gamut
 
     /**
@@ -119,6 +117,14 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
 
     def fromVec(v: Vec[3]): C
     def toVec(c: C): Vec[3]
+
+    def fromVec2sRGB_ARGB(v: Vec[3]): ai.dragonfly.mesh.sRGB.ARGB32 = {
+      Gamut.XYZtoARGB32(
+        toXYZ(
+          fromVec(v)
+        ).asInstanceOf[Vec[3]]
+      ).asInstanceOf[ai.dragonfly.mesh.sRGB.ARGB32]
+    }
   }
 
   trait CylindricalSpace[C: CylindricalColorModel] extends VectorSpace[C] {

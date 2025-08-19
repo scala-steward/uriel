@@ -4,12 +4,13 @@ import narr.*
 import ai.dragonfly.uriel.*
 import ai.dragonfly.uriel.cie.WorkingSpace
 import ai.dragonfly.uriel.color.model.*
-import ai.dragonfly.mesh.*
+import ai.dragonfly.mesh
 import ai.dragonfly.mesh.shape.*
 import slash.Random
 import slash.vector.*
 
 trait HSL extends HueSaturation { self: WorkingSpace =>
+
   object HSL extends HueSaturationSpace[HSL] {
 
     opaque type HSL = Vec[3]
@@ -99,7 +100,7 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
     override def toRGB(c: HSL): RGB = c.toRGB
 
     override def toXYZ(c: HSL): XYZ = c.toXYZ
-
+  
   }
 
   type HSL = HSL.HSL

@@ -2,7 +2,6 @@ package ai.dragonfly.uriel.color.model.perceptual
 
 import narr.*
 import ai.dragonfly.uriel.cie.WorkingSpace
-
 import slash.vector.*
 import slash.matrix.*
 
@@ -14,7 +13,7 @@ import scala.language.implicitConversions
  * That is why CIE XYZ (Tristimulus values) is a device-invariant representation of color."
  *
  * "In the CIE 1931 model, Y is the luminance, Z is quasi-equal to blue (of CIE RGB), and X is a mix of the three CIE RGB
- * curves chosen to be nonnegative."
+ * curves chosen to be non-negative."
  *
  * "... the Z value is solely made up of the S cone response, the Y value a mix of L and M responses, and X value a mix
  * of all three. This fact makes XYZ values analogous to, but different from, the LMS cone responses of the human eye."
@@ -28,7 +27,7 @@ trait XYZ { self:WorkingSpace =>
 
     override lazy val fullGamut: Gamut = Gamut.fromSpectralSamples(cmf, illuminant)
 
-    override lazy val usableGamut: Gamut = Gamut.fromRGB(transform = (xyz:XYZ) => xyz.asInstanceOf[Vec[3]])
+    override lazy val usableGamut: Gamut = Gamut.fromRGB(transform = (xyz:XYZ) => xyz)
 
     def apply(values: NArray[Double]): XYZ = dimensionCheck(values, 3).asInstanceOf[XYZ]
 
@@ -42,7 +41,7 @@ trait XYZ { self:WorkingSpace =>
 
     override def toRGB(xyz: XYZ): RGB = {
       val temp: NArray[Double] = (M_inverse * xyz.asColumnMatrix).values
-      var i: Int = 0;
+      var i: Int = 0
       while (i < temp.length) {
         temp(i) = transferFunction.encode(temp(i))
         i += 1
@@ -51,14 +50,16 @@ trait XYZ { self:WorkingSpace =>
     }
 
     override def toXYZ(c: XYZ): XYZ = c.copy
-    override def fromXYZ(xyz: XYZ): XYZ = xyz.asInstanceOf[Vec[3]].copy
+    override def fromXYZ(xyz: XYZ): XYZ = copy(xyz)
 
-    def copy(xyz:XYZ):XYZ = xyz.copy
+    def copy(xyz:XYZ):XYZ = {
+      val v: Vec[3] = xyz
+      v.copy
+    }
 
-    override def fromVec(v: Vec[3]): XYZ = v
+    override def fromVec(v: Vec[3]): XYZ = v.copy
 
-    override def toVec(xyz: XYZ): Vec[3] = xyz.asInstanceOf[Vec[3]].copy
-
+    override def toVec(xyz: XYZ): Vec[3] = copy(xyz)
 
   }
 
