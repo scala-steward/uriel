@@ -8,6 +8,8 @@ ThisBuild / licenses := Seq(License.Apache2)
 ThisBuild / developers := List( tlGitHubDev("dragonfly-ai", "dragonfly.ai") )
 ThisBuild / scalaVersion := globalScalaVersion
 
+ThisBuild / tlSitePublishBranch := Some("main")
+
 ThisBuild / tlBaseVersion := appVersion
 ThisBuild / tlCiReleaseBranches := Seq()
 
@@ -33,19 +35,18 @@ lazy val uriel = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   )
   .jvmSettings()
 
-lazy val demo = crossProject(JSPlatform, JVMPlatform, NativePlatform)
-  .crossType(CrossType.Full)
-  .dependsOn(uriel)
-  .settings(
-    name := "demo",
-    Compile / mainClass := Some("Demo"),
-    libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.13.1",
-  )
-  .jsSettings(
-    scalaJSUseMainModuleInitializer := true
-  )
-  .jvmSettings()
-
+//lazy val demo = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+//  .crossType(CrossType.Full)
+//  .dependsOn(uriel)
+//  .settings(
+//    name := "demo",
+//    Compile / mainClass := Some("Demo"),
+//    libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.13.1",
+//  )
+//  .jsSettings(
+//    scalaJSUseMainModuleInitializer := true
+//  )
+//  .jvmSettings()
 
 lazy val root = tlCrossRootProject.aggregate(uriel, tests).settings(name := "uriel")
 
