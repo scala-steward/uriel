@@ -89,9 +89,9 @@ function init() {
   document.querySelector("#ws").value = ws
   const space = urlParams.get('space');
   document.querySelector("#space").value = space
-  const visible = './ply/' + ws + "_" + space + ".ply";
+  const visible = './ply/' + ws + "_" + space + "_UsableGamut.ply";
   console.log(visible);
-  const cage = './ply/' + ws + "_" + space + "FullGamut.ply";
+  const cage = './ply/' + ws + "_" + space + "_FullGamut.ply";
   console.log(cage + " " + hasCage(space));
   const scale = getScale(space);
 
