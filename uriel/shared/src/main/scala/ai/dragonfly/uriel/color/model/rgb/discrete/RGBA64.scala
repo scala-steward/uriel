@@ -131,6 +131,9 @@ trait RGBA64 extends DiscreteRGB { self: WorkingSpace =>
     override def toRGB(c: RGBA64): RGB = c.toRGB
 
     override def toXYZ(c: RGBA64): XYZ = c.toXYZ
+
+    override def toString:String = "RGBA64"
+
   }
 
   type RGBA64 = RGBA64.RGBA64

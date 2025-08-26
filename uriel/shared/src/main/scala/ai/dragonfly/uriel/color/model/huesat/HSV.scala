@@ -116,6 +116,7 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
 
     def value(hsv: HSV): Double = hsv(2)
 
+    override def toString:String = "HSV"
   }
 
   type HSV = HSV.HSV

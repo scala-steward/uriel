@@ -117,6 +117,7 @@ trait Luv { self: WorkingSpace =>
 
     override def toVec(luv: Luv): Vec[3] = luv.asInstanceOf[Vec[3]].copy
 
+    override def toString:String = "Luv"
   }
 
   /**

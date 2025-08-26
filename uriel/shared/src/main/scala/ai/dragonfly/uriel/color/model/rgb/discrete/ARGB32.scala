@@ -148,6 +148,8 @@ trait ARGB32 extends DiscreteRGB { self: WorkingSpace =>
 
     override def fromXYZ(xyz: XYZ): ARGB32 = fromRGB(xyz.toRGB)
     override def toXYZ(c: ARGB32): XYZ = c.toXYZ
+
+    override def toString:String = "ARGB32"
   }
 
   type ARGB32 = ARGB32.ARGB32

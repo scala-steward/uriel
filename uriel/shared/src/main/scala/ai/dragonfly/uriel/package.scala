@@ -43,6 +43,7 @@ package object uriel {
 
   trait ProvidedColorContexts extends WorkingSpace
     with rgb.RGB
+    with rgb.LRGB
     with rgb.discrete.ARGB32
     with rgb.discrete.ARGB64
     with rgb.discrete.RGBA32

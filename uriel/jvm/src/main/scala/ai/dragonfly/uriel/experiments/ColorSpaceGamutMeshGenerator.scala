@@ -37,12 +37,13 @@ object ColorSpaceGamutMeshGenerator extends App {
     def writeMesh(g: Gamut, name: String, toARGB: Vec[3] => sRGB.ARGB32 ):Unit = {
       PLY.writeMesh(
         g.volumeMesh,
-        new java.io.FileOutputStream(new File(s"./site/ply/$context${name}Gamut.ply")),
+        new java.io.FileOutputStream(new File(s"./docs/ply/$context${name}Gamut.ply")),
         toARGB
       )
     }
 
     writeMesh(RGB.usableGamut, "RGB_Usable", (cv:Vec[3]) => ARGB32.fromRGB(RGB.fromVec(cv)).asInstanceOf[sRGB.ARGB32])
+    writeMesh(LRGB.usableGamut, "LRGB_Usable", (cv:Vec[3]) => ARGB32.fromRGB(LRGB.fromVec(cv).toRGB).asInstanceOf[sRGB.ARGB32])
 
     writeMesh(CMY.usableGamut, "CMY_Usable", (cv:Vec[3]) => ARGB32.fromRGB(CMY.fromVec(cv).toRGB).asInstanceOf[sRGB.ARGB32])
     writeMesh(CMYK.usableGamut, "CMYK_Usable", (cv:Vec[3]) => ARGB32.fromRGB(CMYK.fromVec(cv).toRGB).asInstanceOf[sRGB.ARGB32])

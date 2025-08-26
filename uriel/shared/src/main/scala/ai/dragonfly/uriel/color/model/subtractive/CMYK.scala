@@ -119,6 +119,7 @@ trait CMYK { self: WorkingSpace =>
 
     override def fromVec(v: Vec[3]): CMYK = apply(v.x, v.y, v.z)
 
+    override def toString:String = "CMYK"
   }
 
   /**

@@ -77,6 +77,7 @@ trait XYZ { self:WorkingSpace =>
 
     override def toVec(xyz: XYZ): Vec[3] = copy(xyz)
 
+    override def toString:String = "XYZ"
   }
 
   type XYZ = XYZ.XYZ

@@ -25,6 +25,8 @@ import scala.language.implicitConversions
 
 trait RGBA32 extends DiscreteRGB { self: WorkingSpace =>
 
+  val `1/255`: Double = 1.0 / 255.0
+
   given Conversion[java.awt.Color, RGBA32] with
     def apply(jac: java.awt.Color): RGBA32 = RGBA32(jac.getRGB() << 24 | jac.getAlpha())
 

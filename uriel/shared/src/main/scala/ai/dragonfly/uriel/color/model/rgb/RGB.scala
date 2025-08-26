@@ -30,15 +30,13 @@ import scala.language.implicitConversions
 
 trait RGB { self: WorkingSpace =>
 
-  val `1/255`: Double = 1.0 / 255.0
-
   object RGB extends VectorSpace[RGB] {
 
     opaque type RGB = Vec[3]
 
     override lazy val usableGamut: Gamut = new Gamut( Cube(1.0, 32) )
 
-    override val maxDistanceSquared: Double = 9.0
+    override val maxDistanceSquared: Double = 3.0
 
     def apply(values: NArray[Double]): RGB = dimensionCheck(values, 3).asInstanceOf[RGB]
 
@@ -115,6 +113,7 @@ trait RGB { self: WorkingSpace =>
     }
     override def fromXYZ(xyz:XYZ):RGB = xyz.toRGB
 
+    override def toString:String = "RGB"
   }
 
 //  case class RGB private(override val values: NArray[Double]) extends VectorColorModel[RGB] {

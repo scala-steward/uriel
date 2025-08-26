@@ -129,6 +129,8 @@ trait ARGB64 extends DiscreteRGB { self: WorkingSpace =>
      * @return a randomly generated color sampled from the RGB Color ColorSpace.
      */
     override def random(r: scala.util.Random = Random.defaultRandom): ARGB64 = 0xFFFF000000000000L | r.nextLong(0xFFFFFFFFFFFFL)
+
+    override def toString:String = "ARGB64"
   }
 
   type ARGB64 = ARGB64.ARGB64

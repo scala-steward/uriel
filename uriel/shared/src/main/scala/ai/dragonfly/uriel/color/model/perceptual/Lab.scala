@@ -96,6 +96,7 @@ trait Lab { self: WorkingSpace =>
       )
     }
 
+    override def toString:String = "Lab"
   }
 
 //  case class Lab private(override val values: NArray[Double]) extends PerceptualColorModel[Lab] {

@@ -116,7 +116,8 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
     override def toRGB(c: HSL): RGB = c.toRGB
 
     override def toXYZ(c: HSL): XYZ = c.toXYZ
-  
+
+    override def toString:String = "HSL"
   }
 
   type HSL = HSL.HSL

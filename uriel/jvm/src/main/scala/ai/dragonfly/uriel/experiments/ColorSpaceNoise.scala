@@ -48,12 +48,13 @@ object ColorSpaceNoise extends App {
         }
       }
 
-      val fileName = s"./site/image/$context$space.png"
+      val fileName = s"./docs/image/$context$space.png"
       if (ImageIO.write(bi, "PNG", new File(fileName))) println(s"\t\tWrote $fileName")
       else println(s"\t\tFailed to write $fileName")
     }
 
     noisyImage(RGB)
+    noisyImage(LRGB)
     noisyImage(CMY)
     noisyImage(HSV)
     noisyImage(HSL)
