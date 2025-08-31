@@ -22,7 +22,7 @@ class Conversion extends munit.FunSuite {
       import ctx.*
 
       var i: Int = 0
-      while (i < 100) {
+      while (i < 1000) {
         val c = ARGB32.random()
         // ARGB -> RGB -> ARGB
         val rgb = c.toRGB
