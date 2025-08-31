@@ -66,8 +66,6 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
       clamp0to1(lightness)
     ).asInstanceOf[HSL]
 
-    def fromRGB(nrgb: RGB): HSL = toHSL(nrgb.red, nrgb.green, nrgb.blue)
-
     /**
      * Factory method for creating instances of the HSL class.  This method validates input parameters and throws an exception
      * if one or more of them lie outside of their allowed ranges.
@@ -82,16 +80,7 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
       else None
     }
 
-    inline def toHSL(red: Double, green: Double, blue: Double): HSL = {
-      val values: NArray[Double] = hueMinMax(red, green, blue)
-
-      val delta: Double = values(2 /*MAX*/) - values(1 /*min*/)
-      val L: Double = (values(1 /*min*/) + values(2 /*MAX*/))
-
-      values(1) = if (delta == 0.0) 0.0 else delta / (1.0 - Math.abs((L) - 1.0))
-      values(2) = 0.5 * L // (min + max) / 2
-      values.asInstanceOf[HSL]
-    }
+    //inline def toHSL(red: Double, green: Double, blue: Double): HSL =
 
     override def random(r: scala.util.Random = Random.defaultRandom): HSL = apply(
       NArray[Double](
@@ -113,7 +102,31 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
 
     def lightness(hsl: HSL): Double = hsl(2)
 
-    override def toRGB(c: HSL): RGB = c.toRGB
+    def fromRGB(rgb: RGB): HSL = {
+      val values: NArray[Double] = hueMinMax(rgb.red, rgb.green, rgb.blue)
+
+      val delta: Double = values(2 /*MAX*/) - values(1 /*min*/)
+      val L: Double = values(1 /*min*/) + values(2 /*MAX*/)
+
+      HSL.apply(
+        values(0),
+        if (delta == 0.0) 0.0 else delta / (1.0 - Math.abs(L - 1.0)),
+        0.5 * L, // (min + max) / 2
+      )
+    }
+
+    override def toRGB(hsl: HSL): RGB = {
+      // https://www.rapidtables.com/convert/color/hsl-to-rgb.html
+      val C = (1.0 - Math.abs((2 * hsl.lightness) - 1.0)) * hsl.saturation
+      RGB.apply(
+        HSL.hcxmToRGBvalues(
+          hsl.hue,
+          C,
+          HSL.XfromHueC(hsl.hue, C), // X
+          hsl.lightness - (0.5 * C) // m
+        )
+      )
+    }
 
     override def toXYZ(c: HSL): XYZ = c.toXYZ
 
@@ -124,8 +137,6 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
 
   given CylindricalColorModel[HSL] with {
     extension (hsl: HSL) {
-  //case class HSL private(override val values: NArray[Double]) extends HueSaturation[HSL] {
-
       def hue: Double = HSL.hue(hsl)
 
       def saturation: Double = HSL.saturation(hsl)
@@ -136,18 +147,7 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
 
       override def copy: HSL = NArray[Double](hue, saturation, lightness).asInstanceOf[HSL]
 
-      def toRGB: RGB = {
-        // https://www.rapidtables.com/convert/color/hsl-to-rgb.html
-        val C = (1.0 - Math.abs((2 * lightness) - 1.0)) * saturation
-        RGB.apply(
-          HSL.hcxmToRGBvalues(
-            hue,
-            C,
-            HSL.XfromHueC(hue, C), // X
-            lightness - (0.5 * C) // m
-          )
-        )
-      }
+      def toRGB: RGB = HSL.toRGB(hsl)
 
       override def toXYZ: XYZ = toRGB.toXYZ
 

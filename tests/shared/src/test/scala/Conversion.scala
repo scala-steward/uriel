@@ -17,9 +17,83 @@
 import ai.dragonfly.uriel.ColorContext
 
 class Conversion extends munit.FunSuite {
-  test("Conversion") {
-    val ctx = ColorContext.sRGB
-    import ctx.*
-    val c1:RGBA32 = RGBA32(127, 255, 64)
+  test("Random Conversions") {
+    for (ctx <- ColorContext.knownContexts) {
+      import ctx.*
+
+      var i: Int = 0
+      while (i < 100) {
+        val c = ARGB32.random()
+        // ARGB -> RGB -> ARGB
+        val rgb = c.toRGB
+        var err = 1.0 - c.similarity(ARGB32.fromRGB(rgb))
+        if (err != 0.0) println(s"$ctx${c.render} ${ARGB32.fromRGB(rgb).render} $err")
+        assertEquals(err, 0.0)
+
+        // ARGB -> RGB -> ARGB
+        val rgba: RGBA32 = RGBA32.fromRGB(rgb)
+        err = 1.0 - c.similarity(ARGB32.fromRGB(rgba.toRGB))
+        if (err != 0.0) println(s"$ctx${c.render} $err")
+        assertEquals(err, 0.0)
+
+        // ARGB -> RGB -> CMY -> RGB -> ARGB
+        val cmy: CMY = CMY.fromRGB(rgb)
+        var cT = ARGB32.fromRGB(cmy.toRGB)
+        err = 1.0 - c.similarity(cT)
+        if (err != 0.0) println(s"$ctx${c.render} -> ${cmy.render} -> ${cT.render}: $err")
+        assertEquals(err, 0.0)
+
+        // ARGB -> RGB -> CMYK -> RGB -> ARGB
+        val cmyk: CMYK = CMYK.fromRGB(rgb)
+        cT = ARGB32.fromRGB(cmyk.toRGB)
+        err = 1.0 - c.similarity(cT)
+        if (err != 0.0) println(s"$ctx${c.render} -> ${cmyk.render} -> ${cT.render}: $err")
+        assertEquals(err, 0.0)
+
+        // ARGB -> RGB -> HSV -> RGB -> ARGB
+        val hsv: HSV = HSV.fromRGB(rgb)
+        cT = ARGB32.fromRGB(hsv.toRGB)
+        err = 1.0 - c.similarity(cT)
+        if (err != 0.0) {
+          println(rgb.render)
+          println(hsv.toRGB.render)
+          println(s"$ctx${c.render} -> ${hsv.render} -> ${cT.render}: $err")
+        }
+        assertEquals(err, 0.0)
+
+        // ARGB -> RGB -> HSL -> RGB -> ARGB
+        val hsl: HSL = HSL.fromRGB(rgb)
+        cT = ARGB32.fromRGB(hsl.toRGB)
+        err = 1.0 - c.similarity(cT)
+        if (err != 0.0) {
+          println(rgb)
+          println(hsl.toRGB)
+          println(s"$ctx${c.render} -> ${hsl.render} -> ${cT.render}: $err")
+        }
+        assertEquals(err, 0.0)
+
+        // ARGB -> RGB -> XYZ -> RGB -> ARGB
+        val xyz: XYZ = rgb.toXYZ
+        cT = ARGB32.fromRGB(RGB.fromXYZ(xyz))
+        err = 1.0 - c.similarity(cT)
+        if (err != 0.0) println(s"$ctx${c.render} -> ${xyz.render} -> ${cT.render}: $err")
+        assertEquals(err, 0.0)
+
+        // ARGB -> RGB -> XYZ -> Lab -> XYZ -> RGB -> ARGB
+        val lab: Lab = Lab.fromXYZ(xyz)
+        cT = ARGB32.fromRGB(RGB.fromXYZ(lab.toXYZ))
+        err = 1.0 - c.similarity(cT)
+        if (err != 0.0) println(s"$ctx${c.render} -> ${lab.render} -> ${cT.render}: $err")
+        assertEquals(err, 0.0)
+
+        // ARGB -> RGB -> XYZ -> Luv -> XYZ -> RGB -> ARGB
+        val luv: Luv = Luv.fromXYZ(xyz)
+        cT = ARGB32.fromRGB(RGB.fromXYZ(luv.toXYZ))
+        err = 1.0 - c.similarity(cT)
+        if (err != 0.0) println(s"$ctx${c.render} -> ${luv.render} -> ${cT.render}: $err")
+        assertEquals(err, 0.0)
+        i = i + 1
+      }
+    }
   }
 }

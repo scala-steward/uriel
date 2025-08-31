@@ -82,17 +82,6 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
       else None
     }
 
-    def fromRGB(nrgb: RGB): HSV = toHSV(nrgb.red, nrgb.green, nrgb.blue)
-
-    inline def toHSV(red: Double, green: Double, blue: Double): HSV = {
-      val values: NArray[Double] = hueMinMax(red, green, blue)
-      values(1) = {  // S
-        if (values(2 /*MAX*/) == 0.0) 0.0
-        else (values(2 /*MAX*/) - values(1 /*min*/)) / values(2 /*MAX*/)
-      }
-      values.asInstanceOf[HSV]
-    }
-
     override def random(r: scala.util.Random = Random.defaultRandom): HSV = apply(
       NArray[Double](
         r.nextDouble() * 360.0,
@@ -100,7 +89,21 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
         r.nextDouble()
       )
     )
-    override def toRGB(c: HSV): RGB = c.toRGB
+
+    def fromRGB(rgb: RGB): HSV = {
+      val values: NArray[Double] = hueMinMax(rgb.red, rgb.green, rgb.blue)
+      values(1) = { // S
+        if (values(2 /*MAX*/) == 0.0) 0.0
+        else (values(2 /*MAX*/) - values(1 /*min*/)) / values(2 /*MAX*/)
+      }
+      values.asInstanceOf[HSV]
+    }
+
+    override def toRGB(hsv: HSV): RGB = {
+      // https://www.rapidtables.com/convert/color/hsv-to-rgb.html
+      val C = hsv.value * hsv.saturation
+      HSV.hcxmToRGBvalues(hsv.hue, C, HSV.XfromHueC(hsv.hue, C), hsv.value - C).asInstanceOf[RGB]
+    }
 
     override def toXYZ(c: HSV): XYZ = c.toXYZ
 
@@ -133,10 +136,7 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
       def value: Double = HSV.value(hsv)
 
       // https://www.rapidtables.com/convert/color/hsv-to-rgb.html
-      def toRGB: RGB = {
-        val C = value * saturation
-        HSV.hcxmToRGBvalues(hue, C, HSV.XfromHueC(hue, C), value - C).asInstanceOf[RGB]
-      }
+      def toRGB: RGB = HSV.toRGB(hsv)
 
       override def copy: HSV = NArray[Double](hue, saturation, value).asInstanceOf[HSV]
 

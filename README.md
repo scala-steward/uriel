@@ -1,4 +1,3 @@
-
 # Uriel (אוריאל) 
 
 A Color Science library for Scala, Scala.js, and Scala Native.  Uriel supports common color spaces: RGB, LRGB (Linear RGB), ARGB32, RGBA32, ARGB64, RGBA64, HSV, HSL, CMY, and CYMK, as well as perceptual color spaces like XYZ, L\*a\*b\*, and L\*u\*v\*.
