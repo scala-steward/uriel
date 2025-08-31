@@ -23,7 +23,7 @@ lazy val uriel = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .crossType(CrossType.Full)
   .settings(
     name := "uriel",
-    version := "0.0.03",
+    description := "A Color Science library for Scala, Scala.js, and Scala Native.",
     Compile / mainClass := Some("ai.dragonfly.uriel.verification.ConversionFidelity"),
     libraryDependencies ++= Seq(
       "ai.dragonfly" %%% "mesh" % "0.14",
@@ -34,19 +34,6 @@ lazy val uriel = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     scalaJSUseMainModuleInitializer := true
   )
   .jvmSettings()
-
-//lazy val demo = crossProject(JSPlatform, JVMPlatform, NativePlatform)
-//  .crossType(CrossType.Full)
-//  .dependsOn(uriel)
-//  .settings(
-//    name := "demo",
-//    Compile / mainClass := Some("Demo"),
-//    libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.13.1",
-//  )
-//  .jsSettings(
-//    scalaJSUseMainModuleInitializer := true
-//  )
-//  .jvmSettings()
 
 lazy val root = tlCrossRootProject.aggregate(uriel, tests).settings(name := "uriel")
 
