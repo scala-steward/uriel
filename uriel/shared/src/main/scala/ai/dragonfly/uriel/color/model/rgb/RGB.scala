@@ -55,12 +55,6 @@ trait RGB { self: WorkingSpace =>
      */
     def apply(red: Double, green: Double, blue: Double): RGB = apply(NArray[Double](red, green, blue))
 
-//    def apply(argb: ARGB32): RGB = apply(`1/255` * argb.red, `1/255` * argb.green, `1/255` * argb.blue)
-//
-//    def apply(rgba: RGBA32): RGB = apply(`1/255` * rgba.red, `1/255` * rgba.green, `1/255` * rgba.blue)
-
-    //override def fromRGB(rgb: RGB): RGB = apply(rgb.red, rgb.green, rgb.blue)
-
     /**
      * Factory method to create a fully Opaque RGB color; one with an alpha value of 1.0.
      * Because this method validates each intensity, it sacrifices performance for safety.
@@ -116,8 +110,6 @@ trait RGB { self: WorkingSpace =>
     override def toString:String = "RGB"
   }
 
-//  case class RGB private(override val values: NArray[Double]) extends VectorColorModel[RGB] {
-//    override type VEC = this.type with RGB
   type RGB = RGB.RGB
 
   given VectorColorModel[RGB] with {

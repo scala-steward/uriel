@@ -28,7 +28,6 @@ trait SampleSet {
 
   lazy val volumePoints:NArray[Vec[3]] = {
 
-    //val points: NArray[Vec[3]] = new NArray[Vec[3]](squareInPlace(samples.length))
     val points: NArray[Vec[3]] = NArray.ofSize[Vec[3]](
       2 + (samples.length * (samples.length - 1))
     )
@@ -55,18 +54,6 @@ trait SampleSet {
         p += 1
       }
     }
-
-//    println(s"${points.length} vs $p")
-//
-//    // normalize:
-//    for (i <- points.indices) {
-//      val xyz: Vec[3] = points(i)
-//      points(i) =  Vec[3](
-//        xyz.x / sv.maxValues(0),
-//        xyz.y / sv.maxValues(1),
-//        xyz.z / sv.maxValues(2)
-//      )
-//    }
 
     points
   }

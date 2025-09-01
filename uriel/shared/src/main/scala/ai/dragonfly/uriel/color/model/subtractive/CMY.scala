@@ -61,8 +61,6 @@ trait CMY { self: WorkingSpace =>
       )
     )
 
-
-
     def cyan(cmy: CMY): Double = cmy(0)
 
     def magenta(cmy: CMY): Double = cmy(1)
@@ -101,7 +99,7 @@ trait CMY { self: WorkingSpace =>
   type CMY = CMY.CMY
 
   /**
-   * CMY is the primary case class for representing colors in CMY space.
+   * CMY is the primary type for representing colors in CMY space.
    *
    * @constructor Create a new CMY object from three Double values.  This constructor does not validate input parameters.
    *              For values taken from user input, sensors, or otherwise uncertain sources, consider using the factory method in the Color companion object.
@@ -110,7 +108,7 @@ trait CMY { self: WorkingSpace =>
    * @param cyan    a value ranging from [0-1].  Values outside of this range may cause errors.
    * @param magenta a value ranging from [0-1].  Values outside of this range may cause errors.
    * @param yellow  a value ranging from [0-1].  Values outside of this range may cause errors.
-   * @return an instance of the CMY case class.
+   * @return an instance of the CMY type.
    * @example {{{
    * val c = CMY(1f, 0.25f, 0.5f, 0f)
    * c.toString()  // returns "CMY(1.000,0.250,0.500,0.000)"
@@ -119,8 +117,6 @@ trait CMY { self: WorkingSpace =>
 
   given VectorColorModel[CMY] with {
     extension (cmy: CMY) {
-      //  case class CMY private(override val values: NArray[Double]) extends VectorColorModel[CMY] {
-      //    override type VEC = this.type with CMY
 
       def cyan: Double = CMY.cyan(cmy)
 

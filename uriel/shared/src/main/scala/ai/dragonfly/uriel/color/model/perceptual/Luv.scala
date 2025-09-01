@@ -103,10 +103,6 @@ trait Luv { self: WorkingSpace =>
       )
     }
 
-//    override val rgbGamut:Gamut = Gamut.fromRGB(transform = (v:XYZ) => Vector3(fromXYZ(v).values))
-
-    //    override def toString:String = s"${illuminant}L*u*v*"
-
     def L(luv: Luv): Double = luv(2)
 
     def u(luv: Luv): Double = luv(0)
@@ -121,13 +117,10 @@ trait Luv { self: WorkingSpace =>
   }
 
   /**
-   * LUV is the base trait for classes that encode colors in the CIE L*u*v* color space.
+   * LUV is the primary type to represent colors from the CIE L*u*v* color space.
    *
    * @see [[https://en.wikipedia.org/wiki/CIELUV]] for more information on CIE L*u*v*.
    */
-
-//  case class Luv private(override val values: NArray[Double]) extends PerceptualColorModel[Luv] {
-//    override type VEC = this.type with Luv
 
   type Luv = Luv.Luv
 

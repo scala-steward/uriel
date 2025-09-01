@@ -228,19 +228,6 @@ trait RGBA32 extends DiscreteRGB { self: WorkingSpace =>
 
       override def similarity(that: RGBA32): Double = RGBA32.similarity(rgba, that)
 
-//      /**
-//       * @return the hashcode.  For all color types, the hashcode function returns the same result as rgba
-//       */
-//      override def hashCode(): Int = rgba.asInstanceOf[Int]
-//
-//      /**
-//       * @return true if these colors are equal in RGBA space, false otherwise
-//       */
-//      def equals(obj: Any): Boolean = obj match {
-//        case that: RGBA32 => rgba == that
-//        case _ => false
-//      }
-
       /**
        * @return a hexadecimal string representing the rgba integer for this color.
        * @example {{{

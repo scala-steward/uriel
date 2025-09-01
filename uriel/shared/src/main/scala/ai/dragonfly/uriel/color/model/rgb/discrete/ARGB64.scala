@@ -136,14 +136,14 @@ trait ARGB64 extends DiscreteRGB { self: WorkingSpace =>
   type ARGB64 = ARGB64.ARGB64
 
   /**
-   * ARGB64 is the primary case class for representing colors in ARGB64 space.
+   * ARGB64 is the primary type for representing colors in ARGB64 space.
    *
    * @constructor Create a new ARGB64 object from an Int.
    * @see [[https://en.wikipedia.org/wiki/RGB_color_space]] for more information on the RGB color space.
    * @param argb a 64 bit integer that represents this color in ARGB64 space.
    *             The most significant byte encodes the alpha value, the second most significant byte encodes red,
    *             the third most significant byte encodes green, and the least significant byte encodes blue.
-   * @return an instance of the ARGB64 case class.
+   * @return an instance of the ARGB64 type.
    * @example {{{
    * val c = ARGB(-1)  // returns fully opaque white
    * c.toString()  // returns "ARGB(65535,65535,65535,65535)"
@@ -152,7 +152,6 @@ trait ARGB64 extends DiscreteRGB { self: WorkingSpace =>
    */
   given DiscreteRGB[ARGB64] with {
     extension (argb: ARGB64) {
-      //case class ARGB64(argb: Long) extends DiscreteRGB[ARGB64] {
       /**
        * @return the alpha component of this color in ARGB64 space.
        */

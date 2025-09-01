@@ -18,6 +18,10 @@ package ai.dragonfly.uriel.verification
 
 import ai.dragonfly.uriel.ColorContext
 
+/**
+ * ConversionFidelity converts every RGBA color to every other color model and back, for all color spaces to verify correctness.
+ */
+
 object ConversionFidelity {
   def main(args: Array[String]):Unit = {
     for (ctx <- ColorContext.knownContexts) {

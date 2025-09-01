@@ -155,14 +155,14 @@ trait ARGB32 extends DiscreteRGB { self: WorkingSpace =>
   type ARGB32 = ARGB32.ARGB32
 
   /**
-   * ARGB is the primary case class for representing colors in ARGB space.
+   * ARGB is the primary type for representing colors in ARGB space.
    *
    * @constructor Create a new ARGB object from an Int.
    * @see [[https://en.wikipedia.org/wiki/RGB_color_space]] for more information on the RGB color space.
    * @param argb a 32 bit integer that represents this color in ARGB space.
    *             The most significant byte encodes the alpha value, the second most significant byte encodes red,
    *             the third most significant byte encodes green, and the least significant byte encodes blue.
-   * @return an instance of the ARGB case class.
+   * @return an instance of the ARGB color model.
    * @example {{{
    * val c = ARGB32(-1)  // returns fully opaque white
    * c.toString()  // returns "ARGB32(255,255,255,255)"
@@ -172,7 +172,6 @@ trait ARGB32 extends DiscreteRGB { self: WorkingSpace =>
   given DiscreteRGB[ARGB32] with {
     extension (argb: ARGB32) {
 
-      ///case class ARGB32(argb: Int) extends DiscreteRGB[ARGB32] {
       /**
        * @return the alpha component of this color in ARGB space.
        */
@@ -196,19 +195,6 @@ trait ARGB32 extends DiscreteRGB { self: WorkingSpace =>
       override def toRGB: RGB = ARGB32.toRGB(argb)
 
       override def similarity(that: ARGB32): Double = ARGB32.similarity(argb, that)
-
-//      /**
-//       * @return the hashcode.  For all color types, the hashcode function returns the same result as argb
-//       */
-//      def hashCode: Int = argb
-
-//      /**
-//       * @return true if these colors are equal in ARGB32 space, false otherwise
-//       */
-//      def equals(obj: Any): Boolean = obj match {
-//        case that: ARGB32 => argb == that
-//        case _ => false
-//      }
 
       /**
        * @return a hexadecimal string representing the rgba integer for this color.

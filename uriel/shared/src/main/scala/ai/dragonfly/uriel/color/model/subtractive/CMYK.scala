@@ -123,7 +123,7 @@ trait CMYK { self: WorkingSpace =>
   }
 
   /**
-   * CMYK is the primary case class for representing colors in CMYK space.
+   * CMYK is the primary type for representing colors in CMYK space.
    *
    * @constructor Create a new CMYK object from three Double values.  This constructor does not validate input parameters.
    *              For values taken from user input, sensors, or otherwise uncertain sources, consider using the factory method in the Color companion object.
@@ -133,7 +133,7 @@ trait CMYK { self: WorkingSpace =>
    * @param magenta a value ranging from [0-1].  Values outside of this range may cause errors.
    * @param yellow  a value ranging from [0-1].  Values outside of this range may cause errors.
    * @param key   a value ranging from [0-1].  Values outside of this range may cause errors.
-   * @return an instance of the CMYK case class.
+   * @return an instance of the CMYK type.
    * @example {{{
    * val c = CMYK(1f, 0.25f, 0.5f, 0f)
    * c.toString()  // returns "CMYK(1.000,0.250,0.500,0.000)"
@@ -144,8 +144,6 @@ trait CMYK { self: WorkingSpace =>
 
   given VectorColorModel[CMYK] with {
     extension (cmyk: CMYK) {
-      //  case class CMYK private(override val values: NArray[Double]) extends VectorColorModel[CMYK] {
-      //    override type VEC = this.type with CMYK
 
       def cyan: Double = CMYK.cyan(cmyk)
 

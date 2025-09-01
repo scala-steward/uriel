@@ -139,14 +139,14 @@ trait RGBA64 extends DiscreteRGB { self: WorkingSpace =>
   type RGBA64 = RGBA64.RGBA64
 
   /**
-   * RGBA64 is the primary case class for representing colors in RGBA64 space.
+   * RGBA64 is the primary type for representing colors in RGBA64 space.
    *
    * @constructor Create a new RGBA64 object from an Int.
    * @see [[https://en.wikipedia.org/wiki/RGB_color_space]] for more information on the RGB color space.
    * @param rgba a 64 bit integer that represents this color in RGBA64 space.
    *             The most significant byte encodes the alpha value, the second most significant byte encodes red,
    *             the third most significant byte encodes green, and the least significant byte encodes blue.
-   * @return an instance of the RGBA64 case class.
+   * @return an instance of the RGBA64 type.
    * @example {{{
    * val c = RGBA64(-1)  // returns fully opaque white
    * c.toString()  // returns "RGBA64(65535,65535,65535,65535)"

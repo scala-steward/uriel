@@ -70,7 +70,6 @@ trait DiscreteRGB {
     lazy val DarkGray: C = gray(MAX / 4)
     lazy val LightGray: C = gray((3 * MAX) / 4)
 
-    // abstract
     def apply(red: Int, green: Int, blue: Int): C
 
     def apply(c1: Int, c2: Int, c3: Int, c4: Int): C
@@ -87,7 +86,6 @@ trait DiscreteRGB {
       (clamp(c4) << 24) | (clamp(c3) << 16) | (clamp(c2) << 8) | clamp(c1)
     }
 
-    // abstract
     inline def clamp(red: Double, green: Double, blue: Double): Int
   }
 
@@ -112,7 +110,6 @@ trait DiscreteRGB {
       else None
     }
 
-    // abstract
     def clamp(red: Double, green: Double, blue: Double): Long
   }
 

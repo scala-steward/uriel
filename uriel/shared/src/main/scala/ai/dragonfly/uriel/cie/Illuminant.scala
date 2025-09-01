@@ -20,8 +20,6 @@ import narr.*
 
 import slash.matrix.*
 
-
-
 /**
  * From: https://en.wikipedia.org/wiki/Standard_illuminant
  * "A standard illuminant is a theoretical source of visible light with a spectral power distribution that is published.

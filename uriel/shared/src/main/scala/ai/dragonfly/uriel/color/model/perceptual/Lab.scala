@@ -46,9 +46,6 @@ trait Lab { self: WorkingSpace =>
      */
     def apply(L: Double, a: Double, b: Double): Lab = apply(NArray[Double](a, b, L))
 
-    //    override val rgbGamut:Gamut = Gamut.fromRGB(transform = (v:XYZ) => Vector3(fromXYZ(v).values))
-    //    override def toString:String = s"${illuminant}L*a*b*"
-
     inline def f(t: Double): Double = if (t > ϵ) Math.cbrt(t) else (t * `k/116`) + `16/116`
 
     inline def fInverse(t: Double): Double = if (t > `∛ϵ`) cubeInPlace(t) else (`116/k` * t) - `16/k`
@@ -98,9 +95,6 @@ trait Lab { self: WorkingSpace =>
 
     override def toString:String = "Lab"
   }
-
-//  case class Lab private(override val values: NArray[Double]) extends PerceptualColorModel[Lab] {
-//    override type VEC = this.type with Lab
 
   type Lab = Lab.Lab
 

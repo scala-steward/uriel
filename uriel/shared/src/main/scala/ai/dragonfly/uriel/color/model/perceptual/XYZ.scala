@@ -82,7 +82,7 @@ trait XYZ { self:WorkingSpace =>
 
   type XYZ = XYZ.XYZ
 
-  given PerceptualColorModel[XYZ] with { //case class XYZ private(override val values: NArray[Double]) extends PerceptualColorModel[XYZ] {
+  given PerceptualColorModel[XYZ] with {
     extension (xyz: XYZ) {
       override inline def copy: XYZ = XYZ.copy(xyz)
 

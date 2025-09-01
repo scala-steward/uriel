@@ -41,7 +41,7 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
     }
 
     /**
-     * HSV is the primary case class for representing colors in HSV space.
+     * HSV is the primary type for representing colors in HSV space.
      *
      * @constructor Create a new HSV object from three Double values.  This constructor does not validate
      *              input parameters.  For values taken from user input, sensors, or otherwise uncertain sources, consider using

@@ -41,7 +41,7 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
     }
 
     /**
-     * HSL is the primary case class for representing colors in HSL space.
+     * HSL is the primary type for representing colors in HSL space.
      *
      * @constructor Create a new HSV object from three Double values.  This constructor does not validate input parameters.
      *              For values taken from user input, sensors, or otherwise uncertain sources, consider using the factory method in the Color companion object.
