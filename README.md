@@ -7,7 +7,7 @@ Uriel supports the following Working Spaces:
 - Apple_RGB
 - Best_RGB
 - Beta_RGB
-- Bruce_RGB  (Included as a gesture of gratitude to Bruce Lindenbloom who's [amazing website](http://www.brucelindbloom.com/) made uriel possible.)
+- Bruce_RGB  (To honor Bruce Lindenbloom who's [amazing website](http://www.brucelindbloom.com/) made uriel possible.)
 - CIE_RGB
 - ColorMatch_RGB
 - Don_RGB_4

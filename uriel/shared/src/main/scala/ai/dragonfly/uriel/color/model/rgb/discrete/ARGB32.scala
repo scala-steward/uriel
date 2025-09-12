@@ -26,16 +26,16 @@ import scala.language.implicitConversions
 trait ARGB32 extends DiscreteRGB { self: WorkingSpace =>
 
   given Conversion[java.awt.Color, ARGB32] with
-    def apply(jac: java.awt.Color): ARGB32 = ARGB32(jac.getRGB())
+    inline def apply(jac: java.awt.Color): ARGB32 = ARGB32(jac.getRGB)
 
   given Conversion[ARGB32, java.awt.Color] with
-    def apply(c: ARGB32): java.awt.Color = new java.awt.Color(c, true)
+    inline def apply(c: ARGB32): java.awt.Color = new java.awt.Color(c, true)
 
   given Conversion[Int, ARGB32] with
-    def apply(argb: Int): ARGB32 = ARGB32(argb)
+    inline def apply(argb: Int): ARGB32 = ARGB32(argb)
 
   given Conversion[ARGB32, Int] with
-    def apply(c: ARGB32): Int = c.asInstanceOf[Int]
+    inline def apply(c: ARGB32): Int = c.asInstanceOf[Int]
 
   object ARGB32 extends UtilRGB32[ARGB32] {
 
